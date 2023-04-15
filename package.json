@@ -1,0 +1,27 @@
+{
+  "name": "bs80-animation",
+  "version": "1.0.0",
+  "description": "Canvas animation",
+  "type": "module",
+  "devDependencies": {
+    "@josundt/eslint-config": "5.0.4",
+    "@josundt/tsconfig-rules": "5.0.5",
+    "esbuild": "0.17.16",
+    "rimraf": "5.0.0",
+    "typescript": "5.0.4"
+  },
+  "scripts": {
+    "compile": "tsc -p ./tsconfig.json --noemit",
+    "clean": "rimraf -g ./dist/**/*",
+    "lint": "eslint src --ext .ts -f visualstudio",
+    "start": "npm run clean && parcel --https ./src/index.html",
+    "build": "npm run clean && esbuild ",
+    "test": "echo \"Error: no test exits\""
+  },
+  "keywords": [],
+  "author": {
+    "name": "Jørn Andre Sundt",
+    "email": "spam@jasmin.no"
+  },
+  "license": "No license"
+}

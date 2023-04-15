@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Chrome",
+      "request": "launch",
+      "type": "chrome",
+      "url": "https://localhost:1234",
+      "webRoot": "${workspaceFolder}/dist"
+    },
+    {
+      "name": "Debug parcel",
+      "request": "launch",
+      "runtimeArgs": [
+        "run",
+        "start"
+      ],
+      "runtimeExecutable": "npm",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    }
+  ]
+}
