@@ -5,21 +5,8 @@
       "name": "Launch Chrome",
       "request": "launch",
       "type": "chrome",
-      "url": "https://localhost:1234",
+      "url": "http://localhost:8080",
       "webRoot": "${workspaceFolder}/dist"
-    },
-    {
-      "name": "Debug parcel",
-      "request": "launch",
-      "runtimeArgs": [
-        "run",
-        "start"
-      ],
-      "runtimeExecutable": "npm",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "type": "node"
     }
   ]
 }

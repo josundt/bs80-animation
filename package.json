@@ -6,6 +6,7 @@
   "devDependencies": {
     "@josundt/eslint-config": "5.0.4",
     "@josundt/tsconfig-rules": "5.0.5",
+    "concurrently": "8.0.1",
     "esbuild": "0.17.16",
     "http-server": "14.1.1",
     "rimraf": "5.0.0",
@@ -15,7 +16,8 @@
     "compile": "tsc -p ./tsconfig.json --noemit",
     "clean": "rimraf -g ./dist/**/* && rimraf -g ./src/**/*.{js,js.map}",
     "lint": "eslint src --ext .ts -f visualstudio",
-    "build": "node build.js",
+    "build": "node ./build/build.js",
+    "start": "concurrently --kill-others \"tsc -w\" \"http-server src -s -c-1\"",
     "test": "echo \"Error: no test exits\""
   },
   "keywords": [],

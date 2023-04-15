@@ -16,8 +16,7 @@ await esbuild.build({
     entryPoints: [src("index.ts")],
     outfile: dst("index.js"),
     bundle: true,
-    sourcemap: true,
-    // tsconfig: "./tsconfig.esbuild.json"
+    sourcemap: true
 });
 
 await Promise.all([
@@ -34,6 +33,6 @@ await Promise.all([
         } catch {
             await fsp.mkdir(path.dirname(d));
         }
-        await fsp.copyFile(src(f), dst(f));
+        await fsp.copyFile(s, d);
     }
 ));
