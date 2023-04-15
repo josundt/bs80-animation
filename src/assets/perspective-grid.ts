@@ -1,4 +1,31 @@
+import type { CanvasStrokeOrFillStyle, Line, Point, Size } from "../lib/abstractions.js";
 import { FrameAnimation, type IFrameAnimation } from "../lib/frame-animation.js";
+
+export interface PerspectiveGridConfiguration {
+    size: Size;
+    /** Field of view kind of the lense, smaller values = spheric */
+    fieldOfView: number;
+    /** view distance, higher values = further away */
+    viewDistance: number;
+    /** grid angle */
+    angle: number;
+    /** grid size in Cartesian */
+    gridSize: number;
+    lineWidth: number;
+}
+
+export type PerspectiveGridOptions = Partial<PerspectiveGridConfiguration>;
+
+export interface PerspectiveGridRenderOptions {
+    horStrokeStyle: CanvasStrokeOrFillStyle;
+    verStrokeStyle: CanvasStrokeOrFillStyle;
+}
+
+export interface PerspectiveGridAnimationOptions extends PerspectiveGridRenderOptions {
+    gridRowsPerSecond?: number;
+    rotateDegPerSecond?: number;
+    skipClear?: boolean;
+}
 
 export class PerspectiveGrid {
 

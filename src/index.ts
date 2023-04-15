@@ -1,6 +1,7 @@
 import { Gradient } from "./assets/gradient.js";
 import { Logo } from "./assets/logo.js";
-import { PerspectiveGrid } from "./assets/perspective-grid.js";
+import { PerspectiveGrid, type PerspectiveGridAnimationOptions } from "./assets/perspective-grid.js";
+import type { Size } from "./lib/abstractions.js";
 import { FrameAnimation } from "./lib/frame-animation.js";
 import { Timing } from "./lib/timing.js";
 
@@ -44,7 +45,7 @@ class Bs80Animation {
         };
 
         const logo = new Logo({
-            url: "bare_så_80_logo_nobg.svg",
+            url: "./images/bare_saa_80_logo_nobg.svg",
             size: [w, h]
         });
         await logo.initAsync();

@@ -3,10 +3,10 @@ import fsp from "node:fs/promises";
 import { rimraf } from "rimraf";
 import esbuild from "esbuild";
 
-const s = "./src/"
-const d = "./dst/";
-const src = p => path.resolve(`${s}${p}`);
-const dst = p => path.resolve(`${d}${p}`);
+const srcDir = "./src/"
+const dstDir = "./dist/";
+const src = p => path.resolve(`${srcDir}${p}`);
+const dst = p => path.resolve(`${dstDir}${p}`);
 
 await rimraf(dst("**/*"), {
     glob: true
@@ -25,5 +25,15 @@ await Promise.all([
     "index.css",
     "images/bare_saa_80_logo_nobg.svg"
 ].map(
-    f => fsp.copyFile(src(f), dst(f))
+    async f => {
+        const s = src(f);
+        const d = dst(f);
+        const dDir = path.dirname(d);
+        try {
+            await fsp.access(dDir);
+        } catch {
+            await fsp.mkdir(path.dirname(d));
+        }
+        await fsp.copyFile(src(f), dst(f));
+    }
 ));

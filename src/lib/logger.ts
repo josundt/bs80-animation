@@ -9,8 +9,11 @@ export interface ILogger {
 
 export class Logger implements ILogger {
     constructor(
-        private readonly console: Console = console
-    ) {}
+        private readonly c?: Console
+    ) {
+        this.console = c ?? console;
+    }
+    private readonly console: Console;
     debug: LogFn = (...args) => this.console.debug(...args);
     info: LogFn = (...args) => this.console.info(...args);
     warn: LogFn = (...args) => this.console.warn(...args);
