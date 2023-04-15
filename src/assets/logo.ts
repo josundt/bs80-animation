@@ -41,21 +41,26 @@ export class Logo {
         ctx: CanvasRenderingContext2D
     ): (time: DOMHighResTimeStamp) => boolean {
 
-        let scaleFactor = 0.03;
+        let scaleFactor = 0;
         let hasLogged = false;
         const imageScale = 0.8;
 
         return (time: DOMHighResTimeStamp): boolean => {
+
             if (scaleFactor < 1) {
-                scaleFactor = Math.min(Easing.easeOut(time * 0.0001, 3), 1);
+                const newScaleFactor = Math.min(Easing.easeInOut(time * 0.00006), 1);
+                scaleFactor = newScaleFactor > scaleFactor ? newScaleFactor : 1;
             } else if (!hasLogged) {
-                this.logger.debug("Logo animation done", time);
+                this.logger.debug("Logo animation done", time, scaleFactor);
                 hasLogged = true;
             }
 
             const [w, h] = this.size;
-            const size = (Math.min(w, h) * scaleFactor) * imageScale;
-            const dimensions: Rect = [(w - size) / 2, (h - size) / 2, size, size];
+            const currWH = (Math.min(w, h) * scaleFactor) * imageScale;
+            const size = [currWH, currWH];
+            const offset = [(w - currWH) / 2, (h - currWH) / (1.52 + ((0.68 * scaleFactor)))];
+            const dimensions: Rect = [...offset, ...size] as Rect;
+
             ctx.drawImage(this.image!, ...dimensions);
 
             return true;

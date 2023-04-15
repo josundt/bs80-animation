@@ -9,7 +9,7 @@ export interface ILogger {
 
 export class Logger implements ILogger {
     constructor(
-        private readonly c?: Console
+        c?: Console
     ) {
         this.console = c ?? console;
     }

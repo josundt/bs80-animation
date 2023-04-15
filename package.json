@@ -7,15 +7,15 @@
     "@josundt/eslint-config": "5.0.4",
     "@josundt/tsconfig-rules": "5.0.5",
     "esbuild": "0.17.16",
+    "http-server": "14.1.1",
     "rimraf": "5.0.0",
     "typescript": "5.0.4"
   },
   "scripts": {
     "compile": "tsc -p ./tsconfig.json --noemit",
-    "clean": "rimraf -g ./dist/**/*",
+    "clean": "rimraf -g ./dist/**/* && rimraf -g ./src/**/*.{js,js.map}",
     "lint": "eslint src --ext .ts -f visualstudio",
-    "start": "npm run clean && parcel --https ./src/index.html",
-    "build": "npm run clean && esbuild ",
+    "build": "node build.js",
     "test": "echo \"Error: no test exits\""
   },
   "keywords": [],

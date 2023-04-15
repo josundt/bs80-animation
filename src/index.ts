@@ -66,6 +66,8 @@ class Bs80Animation {
         const renderGridFrame = pGrid.createAnimationFrameRenderer(ctx, pGridAnimationOptions);
         const renderLogoFrame = logo.createAnimationFrameRenderer(ctx);
 
+        const logoAnimationStartTime = 3_000;
+
         const animation = new FrameAnimation(time => {
 
             let keepRunning = true;
@@ -91,7 +93,9 @@ class Bs80Animation {
             // Render partly transparent overlay gradient
             Gradient.render(ctx, true, 0, 0, w, h);
 
-            renderLogoFrame(time);
+            if (time > logoAnimationStartTime) {
+                renderLogoFrame(time - logoAnimationStartTime);
+            }
 
             return keepRunning;
 

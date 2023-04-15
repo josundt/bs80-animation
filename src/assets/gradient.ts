@@ -1,3 +1,5 @@
+import type { Rect, RgbColor } from "../lib/abstractions.js";
+
 export namespace Gradient {
 
     const gradColors: Array<[offset: number, color: RgbColor]> = [

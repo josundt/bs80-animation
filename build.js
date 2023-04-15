@@ -17,7 +17,7 @@ await esbuild.build({
     outfile: dst("index.js"),
     bundle: true,
     sourcemap: true,
-    tsconfig: "./tsconfig.esbuild.json"
+    // tsconfig: "./tsconfig.esbuild.json"
 });
 
 await Promise.all([
