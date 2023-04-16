@@ -52,7 +52,7 @@ class Bs80Animation {
         await logo.initAsync();
 
         const starFieldAnimationOptions: StarFieldAnimationOptions = {
-            rotateDegPerSecond: 5
+            rotateDegPerSecond: -2
         };
 
         const starField = new StarField({

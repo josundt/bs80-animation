@@ -67,16 +67,17 @@ export class StarField implements AnimationFrameRenderer<[StarFieldAnimationOpti
         }
     }
 
-    createPattern(ctx: CanvasRenderingContext2D, size?: Size): CanvasPattern {
+    createPattern(ctx: CanvasRenderingContext2D, patternSize?: Size): CanvasPattern {
         // Default size is the least of the dimensions
-        if (!size) {
+        if (!patternSize) {
             const [w, h] = this.options.size;
-            const min = Math.min(w, h);
-            size = [min / 2, min / 2];
+            const min = Math.max(w, h);
+            patternSize = [min / 2, min / 2];
         }
         const canvas = document.createElement("canvas");
-        [canvas.width, canvas.height] = size;
+        [canvas.width, canvas.height] = patternSize;
         const patternCtx = canvas.getContext("2d")!;
+        patternCtx.scale(...this.scaling);
         StarField.renderStars(this.stars, patternCtx, this.options.color);
         return ctx.createPattern(canvas, "repeat")!;
     }
@@ -92,11 +93,11 @@ export class StarField implements AnimationFrameRenderer<[StarFieldAnimationOpti
             const rotatation = ((time / 1000) * radPerSecond) % (Math.PI * 2);
             const [w, h] = this.size;
             ctx.save();
-            ctx.scale(...this.scaling);
             ctx.translate(w / 2, h);
+            //ctx.scale(...this.scaling);
             ctx.rotate(rotatation);
-            ctx.fillStyle = pattern;
-            ctx.fillRect(w * -1.5, -h, w * 2.5, h * 3);
+            ctx.fillStyle = this.animationState!.pattern;
+            ctx.fillRect(w * -2.5, h * -2, w * 3.5, h * 4);
             ctx.restore();
             return true;
         };
