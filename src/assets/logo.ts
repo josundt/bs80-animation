@@ -2,17 +2,23 @@ import type { AnimationFrameRenderer, Rect, Size } from "../lib/abstractions.js"
 import { Easing } from "../lib/easing.js";
 import { Logger, type ILogger } from "../lib/logger.js";
 
-export interface LogoOptions {
+export interface LogoConfiguration {
     url: string;
     size: Size;
 }
 
+export type LogoOptions = Readonly<LogoConfiguration>;
+
 export class Logo implements AnimationFrameRenderer {
 
     constructor(
-        private readonly options: LogoOptions,
+        options: LogoOptions,
         private readonly logger: ILogger = new Logger(),
-    ) {}
+    ) {
+        this.config = { ...options };
+    }
+
+    private readonly config: LogoConfiguration;
 
     // private static logoUrl: string = "bare_så_80_logo_nobg.svg";
     private image: HTMLImageElement | null = null;
@@ -27,14 +33,15 @@ export class Logo implements AnimationFrameRenderer {
     }
 
     get size(): Size {
-        return [...this.options.size];
+        return [...this.config.size];
     }
     set size(value: Size) {
-        this.options.size = [...value];
+        this.config.size = [...value];
     }
 
-    async initAsync(): Promise<void> {
-        this.image = await Logo.loadImageAsync(this.options.url);
+    async initAsync(): Promise<this> {
+        this.image = await Logo.loadImageAsync(this.config.url);
+        return this;
     }
 
     createAnimationFrameRenderer(

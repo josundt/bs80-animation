@@ -56,10 +56,10 @@
   // src/assets/logo.ts
   var Logo = class {
     constructor(options, logger = new Logger()) {
-      this.options = options;
       this.logger = logger;
       // private static logoUrl: string = "bare_så_80_logo_nobg.svg";
       this.image = null;
+      this.config = { ...options };
     }
     static loadImageAsync(url) {
       return new Promise((res, rej) => {
@@ -70,13 +70,14 @@
       });
     }
     get size() {
-      return [...this.options.size];
+      return [...this.config.size];
     }
     set size(value) {
-      this.options.size = [...value];
+      this.config.size = [...value];
     }
     async initAsync() {
-      this.image = await Logo.loadImageAsync(this.options.url);
+      this.image = await Logo.loadImageAsync(this.config.url);
+      return this;
     }
     createAnimationFrameRenderer(ctx) {
       let scaleFactor = 0;
@@ -146,7 +147,7 @@
       this.horizontalLines = [];
       this.verticalLines = [];
       this.canvasAnimation = null;
-      this.options = {
+      this.config = {
         ...this.getDefaultOptions(),
         ...options != null ? options : {}
       };
@@ -169,7 +170,7 @@
     }
     rotateX(...point) {
       let [x, y] = point;
-      const { angle, fieldOfView, viewDistance } = this.options;
+      const { angle, fieldOfView, viewDistance } = this.config;
       const rd = angle * Math.PI / 180;
       const ca = Math.cos(rd);
       const sa = Math.sin(rd);
@@ -181,7 +182,7 @@
       return [x, y];
     }
     createVerticalLines() {
-      const { gridSize } = this.options;
+      const { gridSize } = this.config;
       let p1;
       let p2;
       this.verticalLines.splice(0);
@@ -192,7 +193,7 @@
       }
     }
     createHorizontalLines(movePercent = 0) {
-      const { gridSize } = this.options;
+      const { gridSize } = this.config;
       let p1;
       let p2;
       this.horizontalLines.splice(0);
@@ -219,28 +220,28 @@
       return `${indent}<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${strokeStyle}"/>`;
     }
     get size() {
-      return [...this.options.size];
+      return [...this.config.size];
     }
     set size(value) {
-      this.options.size = value;
+      this.config.size = value;
     }
     get angle() {
-      return this.options.angle;
+      return this.config.angle;
     }
     set angle(value) {
-      this.options.angle = value;
+      this.config.angle = value;
     }
     get lineWidth() {
-      return this.options.lineWidth;
+      return this.config.lineWidth;
     }
     set lineWidth(value) {
-      this.options.lineWidth = value;
+      this.config.lineWidth = value;
     }
     get fieldOfView() {
-      return this.options.fieldOfView;
+      return this.config.fieldOfView;
     }
     set fieldOfView(value) {
-      this.options.fieldOfView = value;
+      this.config.fieldOfView = value;
     }
     renderToCanvas(ctx, options, clear) {
       if (clear) {
@@ -271,7 +272,7 @@
         const timeDelta = time - lastTime;
         const rotateDegDelta = timeDelta / 1e3 * ((_a = options.rotateDegPerSecond) != null ? _a : 0);
         this.angle += rotateDegDelta % 360;
-        let keepRunning = true;
+        let hasMoreFrames = true;
         lastTime = time;
         const movePercentDelta = timeDelta * ((_b = options.gridRowsPerSecond) != null ? _b : 3) / 10;
         this.createVerticalLines();
@@ -281,10 +282,10 @@
           rowCounter++;
         }
         if (rowCounter < 0) {
-          keepRunning = false;
+          hasMoreFrames = false;
         }
         rowMovePercent = (rowMovePercent + movePercentDelta) % 100;
-        return keepRunning;
+        return hasMoreFrames;
       };
     }
     startCanvasAnimation(ctx, options, onStopped) {
@@ -303,26 +304,28 @@
   // src/assets/star-field.ts
   var StarField = class {
     constructor(options) {
-      this.options = options;
-      this.scaling = [1, 1];
-      this.stars = StarField.createStars(options);
+      this.config = {
+        patternSize: [500, 500],
+        ...options
+      };
       this.origSize = [...options.size];
+      this.stars = StarField.createStars(this.config);
+    }
+    get scaling() {
+      return [this.size[0] / this.origSize[0], this.size[1] / this.origSize[1]];
     }
     get size() {
-      return this.options.size;
+      return this.config.size;
     }
     set size(value) {
-      const [w, h] = value;
-      const [origW, origH] = this.origSize;
-      this.options.size = [w, h];
-      this.scaling = [w / origW, h / origH];
+      this.config.size = [...value];
       if (this.animationState) {
         this.animationState.pattern = this.createPattern(this.animationState.ctx);
       }
     }
     static createStars(options) {
       const result = [];
-      const [w, h] = options.size;
+      const [w, h] = options.patternSize;
       for (let i = 0; i < options.starCount; ++i) {
         const x = Math.random() * w;
         const y = Math.random() * h;
@@ -339,34 +342,37 @@
         ctx.fill();
       }
     }
-    createPattern(ctx, patternSize) {
-      if (!patternSize) {
-        const [w, h] = this.options.size;
-        const min = Math.max(w, h);
-        patternSize = [min / 2, min / 2];
-      }
+    createPattern(ctx) {
+      const [horScale, verScale] = this.scaling;
+      const patternSize = [500 * horScale, 500 * verScale];
       const canvas = document.createElement("canvas");
       [canvas.width, canvas.height] = patternSize;
       const patternCtx = canvas.getContext("2d");
       patternCtx.scale(...this.scaling);
-      StarField.renderStars(this.stars, patternCtx, this.options.color);
+      StarField.renderStars(this.stars, patternCtx, this.config.color);
       return ctx.createPattern(canvas, "repeat");
     }
     createAnimationFrameRenderer(ctx, options) {
-      const pattern = this.createPattern(ctx);
+      var _a;
       const radPerSecond = options.rotateDegPerSecond * (Math.PI / 180);
       this.animationState = {
         ctx,
-        pattern
+        pattern: this.createPattern(ctx)
       };
+      const [horCenterFactor, verCenterFactor] = (_a = options.rotateCenterFactors) != null ? _a : [0.5, 0.65];
       return (time) => {
         const rotatation = time / 1e3 * radPerSecond % (Math.PI * 2);
         const [w, h] = this.size;
         ctx.save();
-        ctx.translate(w / 2, h);
+        ctx.translate(w * horCenterFactor, h * verCenterFactor);
         ctx.rotate(rotatation);
+        ctx.beginPath();
+        const radius = Math.sqrt((w / 2) ** 2 + h ** 2);
+        ctx.arc(0, 0, radius, 0, 2 * Math.PI);
         ctx.fillStyle = this.animationState.pattern;
-        ctx.fillRect(w * -2.5, h * -2, w * 3.5, h * 4);
+        ctx.fill();
+        ctx.strokeStyle = "#FFF";
+        ctx.stroke();
         ctx.restore();
         return true;
       };
@@ -406,21 +412,45 @@
 
   // src/index.ts
   var Bs80Animation = class {
-    appendCanvas(width, height, parent = document.body) {
+    constructor(containerOrSelector) {
+      let container;
+      if (containerOrSelector) {
+        container = typeof containerOrSelector === "string" ? document.querySelector(containerOrSelector) : containerOrSelector;
+      } else {
+        container = document.body;
+      }
+      if (!container) {
+        throw new Error("Invali container argument");
+      }
+      this.container = container;
+    }
+    appendCanvas(width, height) {
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
-      document.body.appendChild(canvas);
+      this.container.appendChild(canvas);
       const ctx = canvas.getContext("2d");
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       return ctx;
     }
-    getWindowSize() {
+    getContainerSize() {
       return [window.innerWidth, window.innerHeight];
     }
     async start() {
-      let [w, h] = this.getWindowSize();
+      let [w, h] = this.getContainerSize();
+      const ctx = this.appendCanvas(w, h);
+      const starField = new StarField({
+        size: [w, h],
+        patternSize: [800, 800],
+        starCount: 360,
+        maxStarSize: (w / 2 + h / 2) / 900,
+        color: "rgb(255 255 255 / .6)"
+      });
+      const renderStarFieldFrame = starField.createAnimationFrameRenderer(ctx, {
+        rotateDegPerSecond: -3,
+        rotateCenterFactors: [0.5, 0.65]
+      });
       const pGrid = new PerspectiveGrid({
         // size: [960, 540]
         size: [w, h],
@@ -430,58 +460,45 @@
         fieldOfView: h / 2,
         lineWidth: h / 400
       });
-      const pGridAnimationOptions = {
+      const renderGridFrame = pGrid.createAnimationFrameRenderer(ctx, {
         horStrokeStyle: "rgb(97 161 172 / .42)",
         verStrokeStyle: "rgb(255 255 255 / .15)",
         gridRowsPerSecond: 3,
         rotateDegPerSecond: 0,
         skipClear: true
-      };
-      const logo = new Logo({
+      });
+      const logo = await new Logo({
         url: "./images/bare_saa_80_logo_nobg.svg",
         size: [w, h]
-      });
-      await logo.initAsync();
-      const starFieldAnimationOptions = {
-        rotateDegPerSecond: -2
-      };
-      const starField = new StarField({
-        starCount: 1e3,
-        maxStarSize: Math.max(w, h) / 1e3,
-        size: [w, h],
-        color: "rgb(255 255 255 / .6)"
-      });
-      const ctx = this.appendCanvas(w, h);
+      }).initAsync();
+      const renderLogoFrame = logo.createAnimationFrameRenderer(ctx);
       window.addEventListener("resize", () => {
         Timing.debounce(() => {
-          const size = this.getWindowSize();
+          const size = this.getContainerSize();
           [w, h] = pGrid.size = logo.size = starField.size = [ctx.canvas.width, ctx.canvas.height] = size;
           pGrid.fieldOfView = h / 2;
           pGrid.lineWidth = h / 400;
         }, 250);
       });
-      const renderGridFrame = pGrid.createAnimationFrameRenderer(ctx, pGridAnimationOptions);
-      const renderLogoFrame = logo.createAnimationFrameRenderer(ctx);
-      const renderStarFieldFrame = starField.createAnimationFrameRenderer(ctx, starFieldAnimationOptions);
       const logoAnimationStartTime = 3e3;
       const animation = new FrameAnimation((time) => {
-        let keepRunning = true;
+        let hasMoreFrames = true;
         Gradient.render(ctx, false, 0, 0, w, h);
-        keepRunning = renderStarFieldFrame(time);
+        hasMoreFrames = renderStarFieldFrame(time);
         ctx.save();
         ctx.translate(0, h / 4.25);
-        keepRunning = renderGridFrame(time);
+        hasMoreFrames = renderGridFrame(time);
         ctx.restore();
         ctx.save();
         ctx.rotate(Math.PI);
         ctx.translate(-w, h * -1.06);
-        keepRunning = renderGridFrame(time);
+        hasMoreFrames = renderGridFrame(time);
         ctx.restore();
         Gradient.render(ctx, true, 0, 0, w, h);
         if (time > logoAnimationStartTime) {
           renderLogoFrame(time - logoAnimationStartTime);
         }
-        return keepRunning;
+        return hasMoreFrames;
       });
       animation.start();
     }

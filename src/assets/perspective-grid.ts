@@ -14,7 +14,7 @@ export interface PerspectiveGridConfiguration {
     lineWidth: number;
 }
 
-export type PerspectiveGridOptions = Partial<PerspectiveGridConfiguration>;
+export type PerspectiveGridOptions = Partial<Readonly<PerspectiveGridConfiguration>>;
 
 export interface PerspectiveGridRenderOptions {
     horStrokeStyle: CanvasStrokeOrFillStyle;
@@ -30,7 +30,7 @@ export interface PerspectiveGridAnimationOptions extends PerspectiveGridRenderOp
 export class PerspectiveGrid implements AnimationFrameRenderer<[options: PerspectiveGridAnimationOptions]> {
 
     constructor(options?: PerspectiveGridOptions) {
-        this.options = {
+        this.config = {
             ...this.getDefaultOptions(),
             ...(options ?? {})
         };
@@ -38,7 +38,7 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
         this.createHorizontalLines();
     }
 
-    private readonly options: PerspectiveGridConfiguration;
+    private readonly config: PerspectiveGridConfiguration;
     private readonly horizontalLines: Line[] = [];
     private readonly verticalLines: Line[] = [];
 
@@ -60,7 +60,7 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
 
     private rotateX(...point: Point): Point {
         let [x, y] = point;
-        const { angle, fieldOfView, viewDistance } = this.options;
+        const { angle, fieldOfView, viewDistance } = this.config;
         const rd = angle * Math.PI / 180; /// convert angle into radians
         const ca = Math.cos(rd);
         const sa = Math.sin(rd);
@@ -77,7 +77,7 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
     }
 
     private createVerticalLines(): void {
-        const { gridSize } = this.options;
+        const { gridSize } = this.config;
 
         let p1: Point;
         let p2: Point;
@@ -92,7 +92,7 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
     }
 
     private createHorizontalLines(movePercent: number = 0): void {
-        const { gridSize } = this.options;
+        const { gridSize } = this.config;
 
         let p1: Point;
         let p2: Point;
@@ -136,31 +136,31 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
     }
 
     get size(): Size {
-        return [...this.options.size];
+        return [...this.config.size];
     }
     set size(value: Size) {
-        this.options.size = value;
+        this.config.size = value;
     }
 
     get angle(): number {
-        return this.options.angle;
+        return this.config.angle;
     }
     set angle(value: number) {
-        this.options.angle = value;
+        this.config.angle = value;
     }
 
     get lineWidth(): number {
-        return this.options.lineWidth;
+        return this.config.lineWidth;
     }
     set lineWidth(value: number) {
-        this.options.lineWidth = value;
+        this.config.lineWidth = value;
     }
 
     get fieldOfView(): number {
-        return this.options.fieldOfView;
+        return this.config.fieldOfView;
     }
     set fieldOfView(value: number) {
-        this.options.fieldOfView = value;
+        this.config.fieldOfView = value;
     }
 
     renderToCanvas(ctx: CanvasRenderingContext2D, options: PerspectiveGridRenderOptions, clear?: boolean): void {
@@ -197,7 +197,7 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
             const timeDelta = time - lastTime;
             const rotateDegDelta = (timeDelta / 1000) * (options.rotateDegPerSecond ?? 0);
             this.angle += rotateDegDelta % 360;
-            let keepRunning = true;
+            let hasMoreFrames = true;
             lastTime = time;
             // const timeDeltaSeconds = timeDelta / 1_000;
 
@@ -209,10 +209,10 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
                 rowCounter++;
             }
             if (rowCounter /*> 3*/ < 0) {
-                keepRunning = false;
+                hasMoreFrames = false;
             }
             rowMovePercent = (rowMovePercent + movePercentDelta) % 100;
-            return keepRunning;
+            return hasMoreFrames;
         };
 
     }
