@@ -1,4 +1,4 @@
-import type { CanvasStrokeOrFillStyle, Line, Point, Size } from "../lib/abstractions.js";
+import type { AnimationFrameRenderer, CanvasStrokeOrFillStyle, Line, Point, Size } from "../lib/abstractions.js";
 import { FrameAnimation, type IFrameAnimation } from "../lib/frame-animation.js";
 
 export interface PerspectiveGridConfiguration {
@@ -27,7 +27,7 @@ export interface PerspectiveGridAnimationOptions extends PerspectiveGridRenderOp
     skipClear?: boolean;
 }
 
-export class PerspectiveGrid {
+export class PerspectiveGrid implements AnimationFrameRenderer<[options: PerspectiveGridAnimationOptions]> {
 
     constructor(options?: PerspectiveGridOptions) {
         this.options = {

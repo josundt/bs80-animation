@@ -1,6 +1,7 @@
 import { Gradient } from "./assets/gradient.js";
 import { Logo } from "./assets/logo.js";
 import { PerspectiveGrid, type PerspectiveGridAnimationOptions } from "./assets/perspective-grid.js";
+import { StarField, type StarFieldAnimationOptions } from "./assets/star-field.js";
 import type { Size } from "./lib/abstractions.js";
 import { FrameAnimation } from "./lib/frame-animation.js";
 import { Timing } from "./lib/timing.js";
@@ -50,21 +51,31 @@ class Bs80Animation {
         });
         await logo.initAsync();
 
+        const starFieldAnimationOptions: StarFieldAnimationOptions = {
+            rotateDegPerSecond: 5
+        };
+
+        const starField = new StarField({
+            starCount: 1000,
+            maxStarSize: Math.max(w, h) / 1000,
+            size: [w, h],
+            color: "rgb(255 255 255 / .6)"
+        });
+
         const ctx = this.appendCanvas(w, h);
 
         window.addEventListener("resize", () => {
             Timing.debounce(() => {
                 const size = this.getWindowSize();
-                [w, h] = pGrid.size = logo.size = size;
+                [w, h] = pGrid.size = logo.size = starField.size = [ctx.canvas.width, ctx.canvas.height] = size;
                 pGrid.fieldOfView = h / 2;
                 pGrid.lineWidth = h / 400;
-                ctx.canvas.width = w;
-                ctx.canvas.height = h;
             }, 250);
         });
 
         const renderGridFrame = pGrid.createAnimationFrameRenderer(ctx, pGridAnimationOptions);
         const renderLogoFrame = logo.createAnimationFrameRenderer(ctx);
+        const renderStarFieldFrame = starField.createAnimationFrameRenderer(ctx, starFieldAnimationOptions);
 
         const logoAnimationStartTime = 3_000;
 
@@ -76,6 +87,8 @@ class Bs80Animation {
 
             // Render opaque background gradient
             Gradient.render(ctx, false, 0, 0, w, h);
+
+            keepRunning = renderStarFieldFrame(time);
 
             // Position and render bottom grid
             ctx.save();

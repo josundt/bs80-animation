@@ -300,6 +300,79 @@
     }
   };
 
+  // src/assets/star-field.ts
+  var StarField = class {
+    constructor(options) {
+      this.options = options;
+      this.scaling = [1, 1];
+      this.stars = StarField.createStars(options);
+      this.origSize = [...options.size];
+    }
+    get size() {
+      return this.options.size;
+    }
+    set size(value) {
+      const [w, h] = value;
+      const [origW, origH] = this.origSize;
+      this.options.size = [w, h];
+      this.scaling = [w / origW, h / origH];
+      if (this.animationState) {
+        this.animationState.pattern = this.createPattern(this.animationState.ctx);
+      }
+    }
+    static createStars(options) {
+      const result = [];
+      const [w, h] = options.size;
+      for (let i = 0; i < options.starCount; ++i) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        const radius = Math.random() * options.maxStarSize;
+        result.push([x, y, radius]);
+      }
+      return result;
+    }
+    static renderStars(stars, ctx, color) {
+      for (const s of stars) {
+        ctx.beginPath();
+        ctx.arc(...s, 0, 2 * Math.PI, false);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+    }
+    createPattern(ctx, size) {
+      if (!size) {
+        const [w, h] = this.options.size;
+        const min = Math.min(w, h);
+        size = [min / 2, min / 2];
+      }
+      const canvas = document.createElement("canvas");
+      [canvas.width, canvas.height] = size;
+      const patternCtx = canvas.getContext("2d");
+      StarField.renderStars(this.stars, patternCtx, this.options.color);
+      return ctx.createPattern(canvas, "repeat");
+    }
+    createAnimationFrameRenderer(ctx, options) {
+      const pattern = this.createPattern(ctx);
+      const radPerSecond = options.rotateDegPerSecond * (Math.PI / 180);
+      this.animationState = {
+        ctx,
+        pattern
+      };
+      return (time) => {
+        const rotatation = time / 1e3 * radPerSecond % (Math.PI * 2);
+        const [w, h] = this.size;
+        ctx.save();
+        ctx.scale(...this.scaling);
+        ctx.translate(w / 2, h);
+        ctx.rotate(rotatation);
+        ctx.fillStyle = pattern;
+        ctx.fillRect(w * -1.5, -h, w * 2.5, h * 3);
+        ctx.restore();
+        return true;
+      };
+    }
+  };
+
   // src/lib/timing.ts
   var Timing;
   ((Timing2) => {
@@ -369,23 +442,32 @@
         size: [w, h]
       });
       await logo.initAsync();
+      const starFieldAnimationOptions = {
+        rotateDegPerSecond: 5
+      };
+      const starField = new StarField({
+        starCount: 1e3,
+        maxStarSize: Math.max(w, h) / 1e3,
+        size: [w, h],
+        color: "rgb(255 255 255 / .6)"
+      });
       const ctx = this.appendCanvas(w, h);
       window.addEventListener("resize", () => {
         Timing.debounce(() => {
           const size = this.getWindowSize();
-          [w, h] = pGrid.size = logo.size = size;
+          [w, h] = pGrid.size = logo.size = starField.size = [ctx.canvas.width, ctx.canvas.height] = size;
           pGrid.fieldOfView = h / 2;
           pGrid.lineWidth = h / 400;
-          ctx.canvas.width = w;
-          ctx.canvas.height = h;
         }, 250);
       });
       const renderGridFrame = pGrid.createAnimationFrameRenderer(ctx, pGridAnimationOptions);
       const renderLogoFrame = logo.createAnimationFrameRenderer(ctx);
+      const renderStarFieldFrame = starField.createAnimationFrameRenderer(ctx, starFieldAnimationOptions);
       const logoAnimationStartTime = 3e3;
       const animation = new FrameAnimation((time) => {
         let keepRunning = true;
         Gradient.render(ctx, false, 0, 0, w, h);
+        keepRunning = renderStarFieldFrame(time);
         ctx.save();
         ctx.translate(0, h / 4.25);
         keepRunning = renderGridFrame(time);

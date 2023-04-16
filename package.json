@@ -16,7 +16,7 @@
     "compile": "tsc -p ./tsconfig.json --noemit",
     "clean": "rimraf -g ./dist/**/* && rimraf -g ./src/**/*.{js,js.map}",
     "lint": "eslint src --ext .ts -f visualstudio",
-    "build": "node ./build/build.js",
+    "build": "npm run compile && node ./build/build.js",
     "start": "concurrently --kill-others \"tsc -w\" \"http-server src -s -c-1\"",
     "test": "echo \"Error: no test exits\""
   },

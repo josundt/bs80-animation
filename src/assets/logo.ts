@@ -1,4 +1,4 @@
-import type { Rect, Size } from "../lib/abstractions.js";
+import type { AnimationFrameRenderer, Rect, Size } from "../lib/abstractions.js";
 import { Easing } from "../lib/easing.js";
 import { Logger, type ILogger } from "../lib/logger.js";
 
@@ -7,7 +7,7 @@ export interface LogoOptions {
     size: Size;
 }
 
-export class Logo {
+export class Logo implements AnimationFrameRenderer {
 
     constructor(
         private readonly options: LogoOptions,
