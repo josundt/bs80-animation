@@ -1,4 +1,5 @@
-import { Gradient } from "./assets/gradient.js";
+import { BgGradient } from "./assets/bg-gradient.js";
+import { FogGradient } from "./assets/fog-gradient.js";
 import { Logo } from "./assets/logo.js";
 import { PerspectiveGrid } from "./assets/perspective-grid.js";
 import { StarField } from "./assets/star-field.js";
@@ -44,6 +45,9 @@ class Bs80Animation {
         let [w, h] = this.getContainerSize();
 
         const ctx = this.appendCanvas(w, h);
+
+        const bgGradient = new BgGradient();
+        const fogGradient = new FogGradient();
 
         const starField = new StarField({
             size: [w, h],
@@ -98,10 +102,10 @@ class Bs80Animation {
 
             let hasMoreFrames = true;
 
-            // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
             // Render opaque background gradient
-            Gradient.render(ctx, false, 0, 0, w, h);
+            bgGradient.render(ctx, false, 0, 0, w, h);
 
             hasMoreFrames = renderStarFieldFrame(time);
 
@@ -119,7 +123,8 @@ class Bs80Animation {
             ctx.restore();
 
             // Render partly transparent overlay gradient
-            Gradient.render(ctx, true, 0, 0, w, h);
+            //bgGradient.render(ctx, true, 0, 0, w, h);
+            fogGradient.render(ctx, true, 0, 0, w, h);
 
             if (time > logoAnimationStartTime) {
                 renderLogoFrame(time - logoAnimationStartTime);

@@ -1,38 +1,58 @@
 (() => {
-  // src/assets/gradient.ts
-  var Gradient;
-  ((Gradient2) => {
-    const gradColors = [
-      [0, [0, 0, 0, 0]],
-      [0.5, [20, 3, 37, 0]],
-      [0.62, [24.8, 3.815, 45.78, 1]],
-      [0.68, [28, 8, 50, 1]],
-      [1, [41, 39, 62, 0]]
-    ];
-    function toRgb(color, includeAlpha) {
+  // src/lib/linear-gradient.ts
+  var LinearGradient = class {
+    constructor(...colorStops) {
+      this.colorStops = colorStops;
+    }
+    toRgb(color, includeAlpha) {
       const [r, g, b, a] = color;
       const rgb = [r, g, b].join(" ");
       const aTail = includeAlpha && a !== void 0 ? ` / ${a}` : "";
       return `rgb(${rgb}${aTail})`;
     }
-    function create(ctx, includeAlpha, ...rect) {
+    create(ctx, includeAlpha, ...rect) {
       const [x, y, , h] = rect;
       const linGrad = ctx.createLinearGradient(x, y, 0, h);
-      for (const [offset, color] of gradColors) {
-        linGrad.addColorStop(offset, toRgb(color, includeAlpha));
+      for (const [offset, color] of this.colorStops) {
+        linGrad.addColorStop(offset, this.toRgb(color, includeAlpha));
       }
       return linGrad;
     }
-    Gradient2.create = create;
-    function render(ctx, includeAlpha, ...rect) {
-      const linGrad = create(ctx, includeAlpha, ...rect);
+    render(ctx, includeAlpha, ...rect) {
+      const linGrad = this.create(ctx, includeAlpha, ...rect);
       ctx.save();
       ctx.fillStyle = linGrad;
       ctx.fillRect(...rect);
       ctx.restore();
     }
-    Gradient2.render = render;
-  })(Gradient || (Gradient = {}));
+  };
+
+  // src/assets/bg-gradient.ts
+  var BgGradient = class extends LinearGradient {
+    constructor() {
+      super(
+        [0, [26, 4, 48, 1]],
+        //[0.65, [26, 4, 48, 1]],
+        [1, [41, 39, 62, 1]]
+      );
+    }
+  };
+
+  // src/assets/fog-gradient.ts
+  var FogGradient = class extends LinearGradient {
+    constructor() {
+      super(
+        [0, [26, 4, 48, 0]],
+        [0.3, [0, 0, 0, 0]],
+        [0.5, [0, 0, 0, 0.8]],
+        [0.6, [0, 0, 0, 0.99]],
+        [0.65, [0, 0, 0, 1]],
+        [0.68, [0, 0, 0, 0.99]],
+        [0.75, [0, 0, 0, 0.8]],
+        [1, [41, 39, 62, 0]]
+      );
+    }
+  };
 
   // src/lib/easing.ts
   var Easing;
@@ -440,6 +460,8 @@
     async start() {
       let [w, h] = this.getContainerSize();
       const ctx = this.appendCanvas(w, h);
+      const bgGradient = new BgGradient();
+      const fogGradient = new FogGradient();
       const starField = new StarField({
         size: [w, h],
         patternSize: [800, 800],
@@ -483,7 +505,8 @@
       const logoAnimationStartTime = 3e3;
       const animation = new FrameAnimation((time) => {
         let hasMoreFrames = true;
-        Gradient.render(ctx, false, 0, 0, w, h);
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        bgGradient.render(ctx, false, 0, 0, w, h);
         hasMoreFrames = renderStarFieldFrame(time);
         ctx.save();
         ctx.translate(0, h / 4.25);
@@ -494,7 +517,7 @@
         ctx.translate(-w, h * -1.06);
         hasMoreFrames = renderGridFrame(time);
         ctx.restore();
-        Gradient.render(ctx, true, 0, 0, w, h);
+        fogGradient.render(ctx, true, 0, 0, w, h);
         if (time > logoAnimationStartTime) {
           renderLogoFrame(time - logoAnimationStartTime);
         }

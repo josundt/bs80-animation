@@ -3,7 +3,7 @@ html, body {
     padding: 0;
 }
 body {
-    background: #19042e;
+    background: #000;
     /* background-image: linear-gradient(180deg, #000 0%, #1a0430 65%, #29273e 100%); */
     background-repeat: none;
     overflow: hidden;
