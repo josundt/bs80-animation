@@ -1,4 +1,8 @@
+import { Logger } from "./logger.js";
+
 export namespace Timing {
+
+    const logger = new Logger();
 
     export function delayAsync(ms: number, abortSignal?: AbortSignal): Promise<void> {
         let timer: number | null = null;
@@ -8,6 +12,7 @@ export namespace Timing {
                 timer = null;
             }
             abortSignal?.removeEventListener("abort", onAbort);
+            logger.debug("Delay aborted");
         };
         return new Promise(r => {
             timer = setTimeout(r, ms);

@@ -9,13 +9,9 @@ import { Timing } from "./lib/timing.js";
 
 
 class Bs80Animation {
-    constructor(containerOrSelector?: HTMLElement | string) {
-        let container: HTMLElement | null;
-        if (containerOrSelector) {
-            container = typeof containerOrSelector === "string" ? document.querySelector<HTMLElement>(containerOrSelector) : containerOrSelector;
-        } else {
-            container = document.body;
-        }
+
+    constructor(containerOrSelector: HTMLElement | string, ...size: Size) {
+        const container = typeof containerOrSelector === "string" ? document.querySelector<HTMLElement>(containerOrSelector) : containerOrSelector;
         if (!container) {
             throw new Error("Invali container argument");
         }
@@ -51,9 +47,9 @@ class Bs80Animation {
 
         const starField = new StarField({
             size: [w, h],
-            patternSize: [800, 800],
+            patternSizeFactor: 0.5,
             starCount: 360,
-            maxStarSize: (w / 2 + h / 2) / 900,
+            starScaling: 1,
             color: "rgb(255 255 255 / .6)"
         });
         const renderStarFieldFrame = starField.createAnimationFrameRenderer(ctx, {
@@ -64,11 +60,11 @@ class Bs80Animation {
         const pGrid = new PerspectiveGrid({
             // size: [960, 540]
             size: [w, h],
-            viewDistance: 23,
-            gridSize: 20,
+            viewDistance: 28,
+            gridSize: 25,
             angle: 285,
             fieldOfView: h / 2,
-            lineWidth: h / 400
+            lineScaling: 1
         });
         const renderGridFrame = pGrid.createAnimationFrameRenderer(ctx, {
             horStrokeStyle: "rgb(97 161 172 / .42)",
@@ -87,11 +83,11 @@ class Bs80Animation {
 
 
         window.addEventListener("resize", () => {
-            Timing.debounce(() => {
+            Timing.debounce(async () => {
+                await Timing.delayAsync(200);
                 const size = this.getContainerSize();
                 [w, h] = pGrid.size = logo.size = starField.size = [ctx.canvas.width, ctx.canvas.height] = size;
                 pGrid.fieldOfView = h / 2;
-                pGrid.lineWidth = h / 400;
             }, 250);
         });
 
@@ -139,5 +135,5 @@ class Bs80Animation {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-new Bs80Animation().start();
+new Bs80Animation(document.body, window.innerWidth, window.innerHeight).start();
 

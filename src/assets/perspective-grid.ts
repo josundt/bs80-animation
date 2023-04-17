@@ -1,4 +1,5 @@
 import type { AnimationFrameRenderer, CanvasStrokeOrFillStyle, Line, Point, Size } from "../lib/abstractions.js";
+import { Calc } from "../lib/calc.js";
 import { FrameAnimation, type IFrameAnimation } from "../lib/frame-animation.js";
 
 export interface PerspectiveGridConfiguration {
@@ -11,7 +12,8 @@ export interface PerspectiveGridConfiguration {
     angle: number;
     /** grid size in Cartesian */
     gridSize: number;
-    lineWidth: number;
+
+    lineScaling?: number;
 }
 
 export type PerspectiveGridOptions = Partial<Readonly<PerspectiveGridConfiguration>>;
@@ -38,7 +40,7 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
         this.createHorizontalLines();
     }
 
-    private readonly config: PerspectiveGridConfiguration;
+    private readonly config: Required<PerspectiveGridConfiguration>;
     private readonly horizontalLines: Line[] = [];
     private readonly verticalLines: Line[] = [];
 
@@ -47,14 +49,18 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
         return [w / 2, h / 2];
     }
 
-    private getDefaultOptions(): Readonly<PerspectiveGridConfiguration> {
+    private get lineWidth(): number {
+        return Calc.avg(...this.config.size) * 0.001 * this.config.lineScaling;
+    }
+
+    private getDefaultOptions(): Readonly<Required<PerspectiveGridConfiguration>> {
         return {
             size: [960, 540],
             fieldOfView: 512,
             viewDistance: 12,
             angle: -75,
             gridSize: 12,
-            lineWidth: 2
+            lineScaling: 1
         };
     }
 
@@ -147,13 +153,6 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
     }
     set angle(value: number) {
         this.config.angle = value;
-    }
-
-    get lineWidth(): number {
-        return this.config.lineWidth;
-    }
-    set lineWidth(value: number) {
-        this.config.lineWidth = value;
     }
 
     get fieldOfView(): number {

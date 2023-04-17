@@ -1,13 +1,14 @@
 import type { AnimationFrameRenderer, CanvasStrokeOrFillStyle, Size } from "../lib/abstractions.js";
+import { Calc } from "../lib/calc.js";
 
 type Star = [x: number, y: number, radius: number];
 
 export interface StarFieldConfiguration {
     starCount: number;
     size: Size;
-    patternSize?: Size;
-    maxStarSize: number;
     color: CanvasStrokeOrFillStyle;
+    patternSizeFactor?: number;
+    starScaling?: number;
 }
 
 export type StarFieldOptions = Readonly<StarFieldConfiguration>;
@@ -29,17 +30,23 @@ export class StarField implements AnimationFrameRenderer<[StarFieldAnimationOpti
         options: StarFieldOptions
     ) {
         this.config = {
-            patternSize: [500, 500],
+            patternSizeFactor: 0.5,
+            starScaling: 1,
             ...options
         };
         this.origSize = [...options.size];
-        this.stars = StarField.createStars(this.config);
+        this.stars = StarField.createStars(this.config, this.patternSize);
     }
 
     private readonly config: Required<StarFieldConfiguration>;
     private readonly stars: Star[];
     private readonly origSize: Size;
     private animationState?: AnimationState;
+
+    private get patternSize(): Size {
+        const [w, h] = this.size;
+        return [w * this.config.patternSizeFactor, h * this.config.patternSizeFactor];
+    }
 
     get scaling(): [horScaleFactor: number, verScaleFactor: number] {
         return [this.size[0] / this.origSize[0], this.size[1] / this.origSize[1]];
@@ -55,13 +62,13 @@ export class StarField implements AnimationFrameRenderer<[StarFieldAnimationOpti
         }
     }
 
-    private static createStars(options: Required<StarFieldConfiguration>): Star[] {
+    private static createStars(config: Required<StarFieldConfiguration>, size: Size): Star[] {
         const result: Star[] = [];
-        const [w, h] = options.patternSize;
-        for (let i = 0; i < options.starCount; ++i) {
-            const x = Math.random() * w;
-            const y = Math.random() * h;
-            const radius = Math.random() * options.maxStarSize;
+        const [pW, pH] = size;
+        for (let i = 0; i < config.starCount; ++i) {
+            const x = Math.random() * pW;
+            const y = Math.random() * pH;
+            const radius = Math.random() * (Calc.avg(...config.size) * 0.001 * config.starScaling);
             result.push([x, y, radius]);
         }
         return result;
@@ -77,13 +84,19 @@ export class StarField implements AnimationFrameRenderer<[StarFieldAnimationOpti
     }
 
     createPattern(ctx: CanvasRenderingContext2D): CanvasPattern {
-        const [horScale, verScale] = this.scaling;
-        const patternSize = [500 * horScale, 500 * verScale];
         const canvas = document.createElement("canvas");
-        [canvas.width, canvas.height] = patternSize;
+        [canvas.width, canvas.height] = this.patternSize;
         const patternCtx = canvas.getContext("2d")!;
         patternCtx.scale(...this.scaling);
         StarField.renderStars(this.stars, patternCtx, this.config.color);
+        // patternCtx.canvas.toBlob(b => {
+        //     const oUrl = URL.createObjectURL(b!);
+        //     const a = document.createElement("a");
+        //     a.setAttribute("download", "image.png");
+        //     a.setAttribute("href", oUrl);
+        //     a.click();
+        //     URL.revokeObjectURL(oUrl);
+        // }, "image/png");
         return ctx.createPattern(canvas, "repeat")!;
     }
 
@@ -102,9 +115,15 @@ export class StarField implements AnimationFrameRenderer<[StarFieldAnimationOpti
             ctx.rotate(rotatation);
 
             ctx.beginPath();
-            const radius = Math.sqrt(((w / 2) ** 2) + (h ** 2));
-            ctx.arc(0, 0, radius, 0, 2 * Math.PI);
 
+            const hemisphereRadius = Math.sqrt(
+                ((w * Math.max(horCenterFactor, 1 - horCenterFactor)) ** 2) +
+                ((h * Math.max(verCenterFactor, 1 - verCenterFactor)) ** 2)
+            );
+
+            ctx.arc(0, 0, hemisphereRadius, 0, 2 * Math.PI);
+
+            // ctx.scale(...this.scaling);
             ctx.fillStyle = this.animationState!.pattern;
             ctx.fill();
 
