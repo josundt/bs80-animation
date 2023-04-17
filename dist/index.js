@@ -31,25 +31,9 @@
   var BgGradient = class extends LinearGradient {
     constructor() {
       super(
-        [0, [26, 4, 48, 1]],
+        [0, [15, 3, 40, 1]],
         //[0.65, [26, 4, 48, 1]],
-        [1, [41, 39, 62, 1]]
-      );
-    }
-  };
-
-  // src/assets/fog-gradient.ts
-  var FogGradient = class extends LinearGradient {
-    constructor() {
-      super(
-        [0, [26, 4, 48, 0]],
-        [0.3, [0, 0, 0, 0]],
-        [0.5, [0, 0, 0, 0.8]],
-        [0.6, [0, 0, 0, 0.99]],
-        [0.65, [0, 0, 0, 1]],
-        [0.68, [0, 0, 0, 0.99]],
-        [0.75, [0, 0, 0, 0.8]],
-        [1, [41, 39, 62, 0]]
+        [1, [31, 29, 52, 1]]
       );
     }
   };
@@ -99,7 +83,7 @@
       this.image = await Logo.loadImageAsync(this.config.url);
       return this;
     }
-    createAnimationFrameRenderer(ctx) {
+    createFrameRenderer(ctx) {
       let scaleFactor = 0;
       let hasLogged = false;
       const imageScale = 0.8;
@@ -289,7 +273,7 @@
         "</svg>"
       ].join("\n");
     }
-    createAnimationFrameRenderer(ctx, options) {
+    createFrameRenderer(ctx, options) {
       let rowMovePercent = 0;
       let lastTime = 0;
       let rowCounter = 0;
@@ -315,7 +299,7 @@
       };
     }
     startCanvasAnimation(ctx, options, onStopped) {
-      this.canvasAnimation = new FrameAnimation(this.createAnimationFrameRenderer(
+      this.canvasAnimation = new FrameAnimation(this.createFrameRenderer(
         ctx,
         options
       ), onStopped);
@@ -324,6 +308,22 @@
     stopCanvasAnimation() {
       var _a, _b;
       return (_b = (_a = this.canvasAnimation) == null ? void 0 : _a.stop()) != null ? _b : false;
+    }
+  };
+
+  // src/assets/shadow-gradient.ts
+  var ShadowGradient = class extends LinearGradient {
+    constructor() {
+      super(
+        [0, [26, 4, 48, 0]],
+        [0.3, [26, 4, 48, 0]],
+        [0.5, [7, 1, 10, 0.7]],
+        [0.6, [4, 1, 5, 0.99]],
+        [0.65, [1, 1, 1, 1]],
+        [0.68, [4, 1, 7, 0.99]],
+        [0.78, [11, 10, 17, 0.7]],
+        [1, [41, 39, 62, 0]]
+      );
     }
   };
 
@@ -381,7 +381,7 @@
       StarField.renderStars(this.stars, patternCtx, this.config.color);
       return ctx.createPattern(canvas, "repeat");
     }
-    createAnimationFrameRenderer(ctx, options) {
+    createFrameRenderer(ctx, options) {
       var _a;
       const radPerSecond = options.rotateDegPerSecond * (Math.PI / 180);
       this.animationState = {
@@ -446,11 +446,49 @@
   // src/index.ts
   var Bs80Animation = class {
     constructor(containerOrSelector, ...size) {
+      this.onWindowResize = (e) => {
+        Timing.debounce(async () => {
+          const a = this.assets;
+          if (a) {
+            await Timing.delayAsync(200);
+            const size = this.getContainerSize();
+            const [, h] = this.size = a.grid.size = a.logo.size = a.starField.size = [this.ctx.canvas.width, this.ctx.canvas.height] = size;
+            a.grid.fieldOfView = h / 2;
+          }
+        }, 250);
+      };
       const container = typeof containerOrSelector === "string" ? document.querySelector(containerOrSelector) : containerOrSelector;
       if (!container) {
         throw new Error("Invali container argument");
       }
       this.container = container;
+      const [w, h] = this.size = this.getContainerSize();
+      this.ctx = this.appendCanvas(...this.size);
+      this.assets = {
+        bg: new BgGradient(),
+        shadow: new ShadowGradient(),
+        starField: new StarField({
+          size: this.size,
+          patternSizeFactor: 0.5,
+          starCount: 360,
+          starScaling: 1,
+          color: "rgb(255 255 255 / .6)"
+        }),
+        grid: new PerspectiveGrid({
+          // size: [960, 540]
+          size: this.size,
+          viewDistance: 26,
+          gridSize: 23,
+          angle: 285,
+          fieldOfView: h / 2,
+          lineScaling: 1
+        }),
+        logo: new Logo({
+          url: "./images/bare_saa_80_logo_nobg.svg",
+          size: [w, h]
+        })
+      };
+      this.ctorPromise = this.assets.logo.initAsync();
     }
     appendCanvas(width, height) {
       const canvas = document.createElement("canvas");
@@ -465,56 +503,29 @@
     getContainerSize() {
       return [window.innerWidth, window.innerHeight];
     }
-    async start() {
-      let [w, h] = this.getContainerSize();
-      const ctx = this.appendCanvas(w, h);
-      const bgGradient = new BgGradient();
-      const fogGradient = new FogGradient();
-      const starField = new StarField({
-        size: [w, h],
-        patternSizeFactor: 0.5,
-        starCount: 360,
-        starScaling: 1,
-        color: "rgb(255 255 255 / .6)"
-      });
-      const renderStarFieldFrame = starField.createAnimationFrameRenderer(ctx, {
+    async startAnimation() {
+      await this.ctorPromise;
+      window.addEventListener("resize", this.onWindowResize);
+      const { bg, shadow, starField, grid, logo } = this.assets;
+      const renderStarFieldFrame = starField.createFrameRenderer(this.ctx, {
         rotateDegPerSecond: -3,
         rotateCenterFactors: [0.5, 0.65]
       });
-      const pGrid = new PerspectiveGrid({
-        // size: [960, 540]
-        size: [w, h],
-        viewDistance: 28,
-        gridSize: 25,
-        angle: 285,
-        fieldOfView: h / 2,
-        lineScaling: 1
-      });
-      const renderGridFrame = pGrid.createAnimationFrameRenderer(ctx, {
+      const renderGridFrame = grid.createFrameRenderer(this.ctx, {
         horStrokeStyle: "rgb(97 161 172 / .42)",
         verStrokeStyle: "rgb(255 255 255 / .15)",
-        gridRowsPerSecond: 3,
+        gridRowsPerSecond: 2,
         rotateDegPerSecond: 0,
         skipClear: true
       });
-      const logo = await new Logo({
-        url: "./images/bare_saa_80_logo_nobg.svg",
-        size: [w, h]
-      }).initAsync();
-      const renderLogoFrame = logo.createAnimationFrameRenderer(ctx);
-      window.addEventListener("resize", () => {
-        Timing.debounce(async () => {
-          await Timing.delayAsync(200);
-          const size = this.getContainerSize();
-          [w, h] = pGrid.size = logo.size = starField.size = [ctx.canvas.width, ctx.canvas.height] = size;
-          pGrid.fieldOfView = h / 2;
-        }, 250);
-      });
+      const renderLogoFrame = logo.createFrameRenderer(this.ctx);
       const logoAnimationStartTime = 3e3;
       const animation = new FrameAnimation((time) => {
+        const ctx = this.ctx;
+        const [w, h] = this.size;
         let hasMoreFrames = true;
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        bgGradient.render(ctx, false, 0, 0, w, h);
+        bg.render(ctx, false, 0, 0, w, h);
         hasMoreFrames = renderStarFieldFrame(time);
         ctx.save();
         ctx.translate(0, h / 4.25);
@@ -525,7 +536,7 @@
         ctx.translate(-w, h * -1.06);
         hasMoreFrames = renderGridFrame(time);
         ctx.restore();
-        fogGradient.render(ctx, true, 0, 0, w, h);
+        shadow.render(ctx, true, 0, 0, w, h);
         if (time > logoAnimationStartTime) {
           renderLogoFrame(time - logoAnimationStartTime);
         }
@@ -534,6 +545,6 @@
       animation.start();
     }
   };
-  new Bs80Animation(document.body, window.innerWidth, window.innerHeight).start();
+  new Bs80Animation(document.body, window.innerWidth, window.innerHeight).startAnimation();
 })();
 //# sourceMappingURL=index.js.map

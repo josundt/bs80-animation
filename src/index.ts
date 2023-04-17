@@ -1,24 +1,70 @@
 import { BgGradient } from "./assets/bg-gradient.js";
-import { FogGradient } from "./assets/fog-gradient.js";
 import { Logo } from "./assets/logo.js";
 import { PerspectiveGrid } from "./assets/perspective-grid.js";
+import { ShadowGradient } from "./assets/shadow-gradient.js";
 import { StarField } from "./assets/star-field.js";
 import type { Size } from "./lib/abstractions.js";
 import { FrameAnimation } from "./lib/frame-animation.js";
+import type { ILinearGradient } from "./lib/linear-gradient.js";
 import { Timing } from "./lib/timing.js";
 
+interface Bs80Assets {
+    bg: ILinearGradient;
+    starField: StarField //IAnimationFrameRenderer<[StarFieldAnimationOptions]>;
+    grid: PerspectiveGrid //IAnimationFrameRenderer<[PerspectiveGridAnimationOptions]>;
+    shadow: ILinearGradient;
+    logo: Logo //IAsyncAnimationFrameRenderer;
+}
 
 class Bs80Animation {
 
     constructor(containerOrSelector: HTMLElement | string, ...size: Size) {
+
         const container = typeof containerOrSelector === "string" ? document.querySelector<HTMLElement>(containerOrSelector) : containerOrSelector;
         if (!container) {
             throw new Error("Invali container argument");
         }
         this.container = container;
+
+        const [w, h] = this.size = this.getContainerSize();
+
+        this.ctx = this.appendCanvas(...this.size);
+
+        this.assets = {
+            bg: new BgGradient(),
+            shadow: new ShadowGradient(),
+            starField: new StarField({
+                size: this.size,
+                patternSizeFactor: 0.5,
+                starCount: 360,
+                starScaling: 1,
+                color: "rgb(255 255 255 / .6)"
+            }),
+            grid: new PerspectiveGrid({
+                // size: [960, 540]
+                size: this.size,
+                viewDistance: 26,
+                gridSize: 23,
+                angle: 285,
+                fieldOfView: h / 2,
+                lineScaling: 1
+            }),
+            logo: new Logo({
+                url: "./images/bare_saa_80_logo_nobg.svg",
+                size: [w, h]
+            })
+        };
+
+        this.ctorPromise = this.assets.logo.initAsync();
+
     }
 
+    private readonly ctorPromise: Promise<any>;
     private readonly container: HTMLElement;
+
+    private readonly assets: Bs80Assets;
+    ctx: CanvasRenderingContext2D;
+    size: Size;
 
     private appendCanvas(width: number, height: number): CanvasRenderingContext2D {
         const canvas = document.createElement("canvas");
@@ -36,72 +82,54 @@ class Bs80Animation {
         return [window.innerWidth, window.innerHeight];
     }
 
-    async start(): Promise<void> {
+    private readonly onWindowResize: (e: Event) => void = e => {
+        Timing.debounce(async () => {
+            const a = this.assets;
+            if (a) {
+                await Timing.delayAsync(200);
+                const size = this.getContainerSize();
+                const [, h] = this.size = a.grid.size = a.logo.size = a.starField.size = [this.ctx.canvas.width, this.ctx.canvas.height] = size;
+                a.grid.fieldOfView = h / 2;
+            }
+        }, 250);
+    };
 
-        let [w, h] = this.getContainerSize();
+    async startAnimation(): Promise<void> {
 
-        const ctx = this.appendCanvas(w, h);
+        await this.ctorPromise;
 
-        const bgGradient = new BgGradient();
-        const fogGradient = new FogGradient();
+        window.addEventListener("resize", this.onWindowResize);
 
-        const starField = new StarField({
-            size: [w, h],
-            patternSizeFactor: 0.5,
-            starCount: 360,
-            starScaling: 1,
-            color: "rgb(255 255 255 / .6)"
-        });
-        const renderStarFieldFrame = starField.createAnimationFrameRenderer(ctx, {
+        const { bg, shadow, starField, grid, logo } = this.assets;
+
+        const renderStarFieldFrame = starField.createFrameRenderer(this.ctx, {
             rotateDegPerSecond: -3,
             rotateCenterFactors: [0.5, 0.65]
         });
 
-        const pGrid = new PerspectiveGrid({
-            // size: [960, 540]
-            size: [w, h],
-            viewDistance: 28,
-            gridSize: 25,
-            angle: 285,
-            fieldOfView: h / 2,
-            lineScaling: 1
-        });
-        const renderGridFrame = pGrid.createAnimationFrameRenderer(ctx, {
+        const renderGridFrame = grid.createFrameRenderer(this.ctx, {
             horStrokeStyle: "rgb(97 161 172 / .42)",
             verStrokeStyle: "rgb(255 255 255 / .15)",
-            gridRowsPerSecond: 3,
+            gridRowsPerSecond: 2,
             rotateDegPerSecond: 0,
             skipClear: true
         });
 
-
-        const logo = await new Logo({
-            url: "./images/bare_saa_80_logo_nobg.svg",
-            size: [w, h]
-        }).initAsync();
-        const renderLogoFrame = logo.createAnimationFrameRenderer(ctx);
-
-
-        window.addEventListener("resize", () => {
-            Timing.debounce(async () => {
-                await Timing.delayAsync(200);
-                const size = this.getContainerSize();
-                [w, h] = pGrid.size = logo.size = starField.size = [ctx.canvas.width, ctx.canvas.height] = size;
-                pGrid.fieldOfView = h / 2;
-            }, 250);
-        });
-
+        const renderLogoFrame = logo.createFrameRenderer(this.ctx);
 
         const logoAnimationStartTime = 3_000;
 
         const animation = new FrameAnimation(time => {
+
+            const ctx = this.ctx;
+            const [w, h] = this.size;
 
             let hasMoreFrames = true;
 
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
             // Render opaque background gradient
-            bgGradient.render(ctx, false, 0, 0, w, h);
+            bg.render(ctx, false, 0, 0, w, h);
 
             hasMoreFrames = renderStarFieldFrame(time);
 
@@ -120,7 +148,7 @@ class Bs80Animation {
 
             // Render partly transparent overlay gradient
             //bgGradient.render(ctx, true, 0, 0, w, h);
-            fogGradient.render(ctx, true, 0, 0, w, h);
+            shadow.render(ctx, true, 0, 0, w, h);
 
             if (time > logoAnimationStartTime) {
                 renderLogoFrame(time - logoAnimationStartTime);
@@ -135,5 +163,5 @@ class Bs80Animation {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-new Bs80Animation(document.body, window.innerWidth, window.innerHeight).start();
+new Bs80Animation(document.body, window.innerWidth, window.innerHeight).startAnimation();
 

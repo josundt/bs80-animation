@@ -1,4 +1,4 @@
-import type { AnimationFrameRenderer, CanvasStrokeOrFillStyle, Size } from "../lib/abstractions.js";
+import type { CanvasStrokeOrFillStyle, IAnimationFrameRenderer, Size } from "../lib/abstractions.js";
 import { Calc } from "../lib/calc.js";
 
 type Star = [x: number, y: number, radius: number];
@@ -24,7 +24,7 @@ interface AnimationState {
 }
 
 
-export class StarField implements AnimationFrameRenderer<[StarFieldAnimationOptions]> {
+export class StarField implements IAnimationFrameRenderer<[StarFieldAnimationOptions]> {
 
     constructor(
         options: StarFieldOptions
@@ -100,7 +100,7 @@ export class StarField implements AnimationFrameRenderer<[StarFieldAnimationOpti
         return ctx.createPattern(canvas, "repeat")!;
     }
 
-    createAnimationFrameRenderer(ctx: CanvasRenderingContext2D, options: StarFieldAnimationOptions): (time: number) => boolean {
+    createFrameRenderer(ctx: CanvasRenderingContext2D, options: StarFieldAnimationOptions): (time: number) => boolean {
         const radPerSecond = options.rotateDegPerSecond * (Math.PI / 180);
         this.animationState = {
             ctx: ctx,

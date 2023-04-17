@@ -1,4 +1,4 @@
-import type { AnimationFrameRenderer, CanvasStrokeOrFillStyle, Line, Point, Size } from "../lib/abstractions.js";
+import type { CanvasStrokeOrFillStyle, IAnimationFrameRenderer, Line, Point, Size } from "../lib/abstractions.js";
 import { Calc } from "../lib/calc.js";
 import { FrameAnimation, type IFrameAnimation } from "../lib/frame-animation.js";
 
@@ -29,7 +29,7 @@ export interface PerspectiveGridAnimationOptions extends PerspectiveGridRenderOp
     skipClear?: boolean;
 }
 
-export class PerspectiveGrid implements AnimationFrameRenderer<[options: PerspectiveGridAnimationOptions]> {
+export class PerspectiveGrid implements IAnimationFrameRenderer<[options: PerspectiveGridAnimationOptions]> {
 
     constructor(options?: PerspectiveGridOptions) {
         this.config = {
@@ -184,7 +184,7 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
         ].join("\n");
     }
 
-    createAnimationFrameRenderer(
+    createFrameRenderer(
         ctx: CanvasRenderingContext2D,
         options: PerspectiveGridAnimationOptions
     ): (time: DOMHighResTimeStamp) => boolean {
@@ -223,7 +223,7 @@ export class PerspectiveGrid implements AnimationFrameRenderer<[options: Perspec
         options: PerspectiveGridAnimationOptions,
         onStopped?: () => void
     ): boolean {
-        this.canvasAnimation = new FrameAnimation(this.createAnimationFrameRenderer(
+        this.canvasAnimation = new FrameAnimation(this.createFrameRenderer(
             ctx,
             options
         ), onStopped);

@@ -2,7 +2,12 @@ import type { Rect, RgbColor } from "./abstractions.js";
 
 type ColorStop = [offset: number, color: RgbColor];
 
-export class LinearGradient {
+export interface ILinearGradient {
+    create(ctx: CanvasRenderingContext2D, includeAlpha: boolean, ...rect: Rect): CanvasGradient;
+    render(ctx: CanvasRenderingContext2D, includeAlpha: boolean, ...rect: Rect): void;
+}
+
+export class LinearGradient implements ILinearGradient {
 
     constructor(
         ...colorStops: ColorStop[]

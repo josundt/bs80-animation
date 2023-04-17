@@ -1,4 +1,4 @@
-import type { AnimationFrameRenderer, Rect, Size } from "../lib/abstractions.js";
+import type { IAsyncAnimationFrameRenderer, Rect, Size } from "../lib/abstractions.js";
 import { Easing } from "../lib/easing.js";
 import { Logger, type ILogger } from "../lib/logger.js";
 
@@ -9,7 +9,7 @@ export interface LogoConfiguration {
 
 export type LogoOptions = Readonly<LogoConfiguration>;
 
-export class Logo implements AnimationFrameRenderer {
+export class Logo implements IAsyncAnimationFrameRenderer {
 
     constructor(
         options: LogoOptions,
@@ -44,9 +44,10 @@ export class Logo implements AnimationFrameRenderer {
         return this;
     }
 
-    createAnimationFrameRenderer(
+    createFrameRenderer(
         ctx: CanvasRenderingContext2D
     ): (time: DOMHighResTimeStamp) => boolean {
+
 
         let scaleFactor = 0;
         let hasLogged = false;
