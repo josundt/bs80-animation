@@ -122,6 +122,15 @@
     }
   };
 
+  // src/lib/calc.ts
+  var Calc;
+  ((Calc2) => {
+    function avg(...numbers) {
+      return numbers.reduce((aggr, curr) => aggr + curr / numbers.length, 0);
+    }
+    Calc2.avg = avg;
+  })(Calc || (Calc = {}));
+
   // src/lib/frame-animation.ts
   var FrameAnimation = class {
     constructor(cbRenderFrame, cbStopped) {
@@ -178,6 +187,9 @@
       const [w, h] = this.size;
       return [w / 2, h / 2];
     }
+    get lineWidth() {
+      return Calc.avg(...this.config.size) * 1e-3 * this.config.lineScaling;
+    }
     getDefaultOptions() {
       return {
         size: [960, 540],
@@ -185,7 +197,7 @@
         viewDistance: 12,
         angle: -75,
         gridSize: 12,
-        lineWidth: 2
+        lineScaling: 1
       };
     }
     rotateX(...point) {
@@ -250,12 +262,6 @@
     }
     set angle(value) {
       this.config.angle = value;
-    }
-    get lineWidth() {
-      return this.config.lineWidth;
-    }
-    set lineWidth(value) {
-      this.config.lineWidth = value;
     }
     get fieldOfView() {
       return this.config.fieldOfView;
@@ -325,11 +331,16 @@
   var StarField = class {
     constructor(options) {
       this.config = {
-        patternSize: [500, 500],
+        patternSizeFactor: 0.5,
+        starScaling: 1,
         ...options
       };
       this.origSize = [...options.size];
-      this.stars = StarField.createStars(this.config);
+      this.stars = StarField.createStars(this.config, this.patternSize);
+    }
+    get patternSize() {
+      const [w, h] = this.size;
+      return [w * this.config.patternSizeFactor, h * this.config.patternSizeFactor];
     }
     get scaling() {
       return [this.size[0] / this.origSize[0], this.size[1] / this.origSize[1]];
@@ -343,13 +354,13 @@
         this.animationState.pattern = this.createPattern(this.animationState.ctx);
       }
     }
-    static createStars(options) {
+    static createStars(config, size) {
       const result = [];
-      const [w, h] = options.patternSize;
-      for (let i = 0; i < options.starCount; ++i) {
-        const x = Math.random() * w;
-        const y = Math.random() * h;
-        const radius = Math.random() * options.maxStarSize;
+      const [pW, pH] = size;
+      for (let i = 0; i < config.starCount; ++i) {
+        const x = Math.random() * pW;
+        const y = Math.random() * pH;
+        const radius = Math.random() * (Calc.avg(...config.size) * 1e-3 * config.starScaling);
         result.push([x, y, radius]);
       }
       return result;
@@ -363,10 +374,8 @@
       }
     }
     createPattern(ctx) {
-      const [horScale, verScale] = this.scaling;
-      const patternSize = [500 * horScale, 500 * verScale];
       const canvas = document.createElement("canvas");
-      [canvas.width, canvas.height] = patternSize;
+      [canvas.width, canvas.height] = this.patternSize;
       const patternCtx = canvas.getContext("2d");
       patternCtx.scale(...this.scaling);
       StarField.renderStars(this.stars, patternCtx, this.config.color);
@@ -387,8 +396,10 @@
         ctx.translate(w * horCenterFactor, h * verCenterFactor);
         ctx.rotate(rotatation);
         ctx.beginPath();
-        const radius = Math.sqrt((w / 2) ** 2 + h ** 2);
-        ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+        const hemisphereRadius = Math.sqrt(
+          (w * Math.max(horCenterFactor, 1 - horCenterFactor)) ** 2 + (h * Math.max(verCenterFactor, 1 - verCenterFactor)) ** 2
+        );
+        ctx.arc(0, 0, hemisphereRadius, 0, 2 * Math.PI);
         ctx.fillStyle = this.animationState.pattern;
         ctx.fill();
         ctx.strokeStyle = "#FFF";
@@ -402,6 +413,7 @@
   // src/lib/timing.ts
   var Timing;
   ((Timing2) => {
+    const logger = new Logger();
     function delayAsync(ms, abortSignal) {
       let timer = null;
       const onAbort = () => {
@@ -410,6 +422,7 @@
           timer = null;
         }
         abortSignal == null ? void 0 : abortSignal.removeEventListener("abort", onAbort);
+        logger.debug("Delay aborted");
       };
       return new Promise((r) => {
         timer = setTimeout(r, ms);
@@ -432,13 +445,8 @@
 
   // src/index.ts
   var Bs80Animation = class {
-    constructor(containerOrSelector) {
-      let container;
-      if (containerOrSelector) {
-        container = typeof containerOrSelector === "string" ? document.querySelector(containerOrSelector) : containerOrSelector;
-      } else {
-        container = document.body;
-      }
+    constructor(containerOrSelector, ...size) {
+      const container = typeof containerOrSelector === "string" ? document.querySelector(containerOrSelector) : containerOrSelector;
       if (!container) {
         throw new Error("Invali container argument");
       }
@@ -464,9 +472,9 @@
       const fogGradient = new FogGradient();
       const starField = new StarField({
         size: [w, h],
-        patternSize: [800, 800],
+        patternSizeFactor: 0.5,
         starCount: 360,
-        maxStarSize: (w / 2 + h / 2) / 900,
+        starScaling: 1,
         color: "rgb(255 255 255 / .6)"
       });
       const renderStarFieldFrame = starField.createAnimationFrameRenderer(ctx, {
@@ -476,11 +484,11 @@
       const pGrid = new PerspectiveGrid({
         // size: [960, 540]
         size: [w, h],
-        viewDistance: 23,
-        gridSize: 20,
+        viewDistance: 28,
+        gridSize: 25,
         angle: 285,
         fieldOfView: h / 2,
-        lineWidth: h / 400
+        lineScaling: 1
       });
       const renderGridFrame = pGrid.createAnimationFrameRenderer(ctx, {
         horStrokeStyle: "rgb(97 161 172 / .42)",
@@ -495,11 +503,11 @@
       }).initAsync();
       const renderLogoFrame = logo.createAnimationFrameRenderer(ctx);
       window.addEventListener("resize", () => {
-        Timing.debounce(() => {
+        Timing.debounce(async () => {
+          await Timing.delayAsync(200);
           const size = this.getContainerSize();
           [w, h] = pGrid.size = logo.size = starField.size = [ctx.canvas.width, ctx.canvas.height] = size;
           pGrid.fieldOfView = h / 2;
-          pGrid.lineWidth = h / 400;
         }, 250);
       });
       const logoAnimationStartTime = 3e3;
@@ -526,6 +534,6 @@
       animation.start();
     }
   };
-  new Bs80Animation().start();
+  new Bs80Animation(document.body, window.innerWidth, window.innerHeight).start();
 })();
 //# sourceMappingURL=index.js.map
