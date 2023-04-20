@@ -2,7 +2,7 @@ import { BgGradient } from "./assets/bg-gradient.js";
 import { Logo } from "./assets/logo.js";
 import { PerspectiveGrid } from "./assets/perspective-grid.js";
 import { ShadowGradient } from "./assets/shadow-gradient.js";
-import { StarField } from "./assets/star-field.js";
+import { Starfield } from "./assets/starfield.js";
 import type { Size } from "./lib/abstractions.js";
 import { FrameAnimation } from "./lib/frame-animation.js";
 import type { ILinearGradient } from "./lib/linear-gradient.js";
@@ -10,10 +10,16 @@ import { Timing } from "./lib/timing.js";
 
 interface Bs80Assets {
     bg: ILinearGradient;
-    starField: StarField //IAnimationFrameRenderer<[StarFieldAnimationOptions]>;
+    starField: Starfield //IAnimationFrameRenderer<[StarFieldAnimationOptions]>;
     grid: PerspectiveGrid //IAnimationFrameRenderer<[PerspectiveGridAnimationOptions]>;
     shadow: ILinearGradient;
     logo: Logo //IAsyncAnimationFrameRenderer;
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+declare const IS_DEVELOPMENT: boolean | undefined;
+if (IS_DEVELOPMENT) {
+    import("./live-reload.js");
 }
 
 class Bs80Animation {
@@ -33,7 +39,7 @@ class Bs80Animation {
         this.assets = {
             bg: new BgGradient(),
             shadow: new ShadowGradient(),
-            starField: new StarField({
+            starField: new Starfield({
                 size: this.size,
                 patternSizeFactor: 0.5,
                 starCount: 360,

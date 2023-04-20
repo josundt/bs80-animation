@@ -3,7 +3,7 @@ import { Calc } from "../lib/calc.js";
 
 type Star = [x: number, y: number, radius: number];
 
-export interface StarFieldConfiguration {
+export interface StarfieldConfiguration {
     starCount: number;
     size: Size;
     color: CanvasStrokeOrFillStyle;
@@ -11,9 +11,9 @@ export interface StarFieldConfiguration {
     starScaling?: number;
 }
 
-export type StarFieldOptions = Readonly<StarFieldConfiguration>;
+export type StarfieldOptions = Readonly<StarfieldConfiguration>;
 
-export interface StarFieldAnimationOptions {
+export interface StarfieldAnimationOptions {
     rotateDegPerSecond: number;
     rotateCenterFactors?: [horCenterFactor: number, verCenterFactor: number];
 }
@@ -24,10 +24,10 @@ interface AnimationState {
 }
 
 
-export class StarField implements IAnimationFrameRenderer<[StarFieldAnimationOptions]> {
+export class Starfield implements IAnimationFrameRenderer<[StarfieldAnimationOptions]> {
 
     constructor(
-        options: StarFieldOptions
+        options: StarfieldOptions
     ) {
         this.config = {
             patternSizeFactor: 0.5,
@@ -35,10 +35,10 @@ export class StarField implements IAnimationFrameRenderer<[StarFieldAnimationOpt
             ...options
         };
         this.origSize = [...options.size];
-        this.stars = StarField.createStars(this.config, this.patternSize);
+        this.stars = Starfield.createStars(this.config, this.patternSize);
     }
 
-    private readonly config: Required<StarFieldConfiguration>;
+    private readonly config: Required<StarfieldConfiguration>;
     private readonly stars: Star[];
     private readonly origSize: Size;
     private animationState?: AnimationState;
@@ -62,7 +62,7 @@ export class StarField implements IAnimationFrameRenderer<[StarFieldAnimationOpt
         }
     }
 
-    private static createStars(config: Required<StarFieldConfiguration>, size: Size): Star[] {
+    private static createStars(config: Required<StarfieldConfiguration>, size: Size): Star[] {
         const result: Star[] = [];
         const [pW, pH] = size;
         for (let i = 0; i < config.starCount; ++i) {
@@ -88,7 +88,7 @@ export class StarField implements IAnimationFrameRenderer<[StarFieldAnimationOpt
         [canvas.width, canvas.height] = this.patternSize;
         const patternCtx = canvas.getContext("2d")!;
         patternCtx.scale(...this.scaling);
-        StarField.renderStars(this.stars, patternCtx, this.config.color);
+        Starfield.renderStars(this.stars, patternCtx, this.config.color);
         // patternCtx.canvas.toBlob(b => {
         //     const oUrl = URL.createObjectURL(b!);
         //     const a = document.createElement("a");
@@ -100,7 +100,7 @@ export class StarField implements IAnimationFrameRenderer<[StarFieldAnimationOpt
         return ctx.createPattern(canvas, "repeat")!;
     }
 
-    createFrameRenderer(ctx: CanvasRenderingContext2D, options: StarFieldAnimationOptions): (time: number) => boolean {
+    createFrameRenderer(ctx: CanvasRenderingContext2D, options: StarfieldAnimationOptions): (time: number) => boolean {
         const radPerSecond = options.rotateDegPerSecond * (Math.PI / 180);
         this.animationState = {
             ctx: ctx,
