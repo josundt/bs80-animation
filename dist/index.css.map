@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/index.css"],
+  "sourcesContent": ["html, body {\r\n    margin: 0;\r\n    padding: 0;\r\n}\r\nbody {\r\n\r\n    background: #000;\r\n    /* background-image: linear-gradient(180deg, #000 0%, #1a0430 65%, #29273e 100%); */\r\n    background-repeat: none;\r\n    overflow: hidden;\r\n}\r\n\r\n"],
+  "mappings": "AAAA,6BAIA,KAEI,gBAEA,uBACA",
+  "names": []
+}

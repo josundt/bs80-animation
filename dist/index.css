@@ -1,11 +1,2 @@
-html, body {
-    margin: 0;
-    padding: 0;
-}
-body {
-
-    background: #000;
-    /* background-image: linear-gradient(180deg, #000 0%, #1a0430 65%, #29273e 100%); */
-    background-repeat: none;
-    overflow: hidden;
-}
+html,body{margin:0;padding:0}body{background:#000;background-repeat:none;overflow:hidden}
+/*# sourceMappingURL=index.css.map */

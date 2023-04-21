@@ -3,11 +3,13 @@ import fsp from "node:fs/promises";
 import { src, dst } from "./path-helper.js";
 
 export function copyAssetsAsync() {
-    console.info("Copying assets to dist folder");
+
+    console.info(` > Copying assets to "${dst("")}"...`);
+
     return Promise.all([
         "index.html",
-        "index.css",
-        "images/bare_saa_80_logo_nobg.svg"
+        "images/bare_saa_80_logo_nobg.svg",
+        // "index.css",
     ].map(
         async f => {
             const s = src(f);

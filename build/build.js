@@ -1,9 +1,7 @@
 import { cleanAsync } from "./lib/clean.js";
-import { esbuildAsync } from "./lib/esbuild.js";
+import { buildAsync } from "./lib/esbuild.js";
 import { copyAssetsAsync } from "./lib/copy-assets.js";
 
 await cleanAsync();
-
-await esbuildAsync(true);
-
+await buildAsync(true);
 await copyAssetsAsync();

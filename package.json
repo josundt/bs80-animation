@@ -7,7 +7,7 @@
     "@josundt/eslint-config": "5.0.4",
     "@josundt/tsconfig-rules": "5.0.5",
     "concurrently": "8.0.1",
-    "esbuild": "0.17.16",
+    "esbuild": "0.17.17",
     "http-server": "14.1.1",
     "rimraf": "5.0.0",
     "typescript": "5.0.4"
@@ -17,8 +17,7 @@
     "clean": "rimraf -g ./dist/**/* && rimraf -g ./src/**/*.{js,js.map}",
     "lint": "eslint src --ext .ts -f visualstudio",
     "build": "npm run compile && node ./build/build.js",
-    "prestart": "node ./build/prestart.js",
-    "start": "esbuild ./src/index.ts --bundle --sourcemap --outdir=./dist --watch --serve=127.0.0.1:8080 --servedir=./dist --define:IS_DEVELOPMENT=true",
+    "start": "node ./build/start.js",
     "test": "echo \"Error: no test exits\""
   },
   "keywords": [],

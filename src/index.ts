@@ -16,6 +16,7 @@ interface Bs80Assets {
     logo: Logo //IAsyncAnimationFrameRenderer;
 }
 
+
 // eslint-disable-next-line @typescript-eslint/naming-convention
 declare const IS_DEVELOPMENT: boolean | undefined;
 if (IS_DEVELOPMENT) {
@@ -24,7 +25,7 @@ if (IS_DEVELOPMENT) {
 
 class Bs80Animation {
 
-    constructor(containerOrSelector: HTMLElement | string, ...size: Size) {
+    constructor(containerOrSelector: HTMLElement | string, private readonly getSize: () => Size) {
 
         const container = typeof containerOrSelector === "string" ? document.querySelector<HTMLElement>(containerOrSelector) : containerOrSelector;
         if (!container) {
@@ -32,7 +33,7 @@ class Bs80Animation {
         }
         this.container = container;
 
-        const [w, h] = this.size = this.getContainerSize();
+        const [w, h] = this.size = getSize();
 
         this.ctx = this.appendCanvas(...this.size);
 
@@ -84,23 +85,19 @@ class Bs80Animation {
         return ctx;
     }
 
-    private getContainerSize(): Size {
-        return [window.innerWidth, window.innerHeight];
-    }
-
     private readonly onWindowResize: (e: Event) => void = e => {
         Timing.debounce(async () => {
             const a = this.assets;
             if (a) {
                 await Timing.delayAsync(200);
-                const size = this.getContainerSize();
+                const size = this.getSize();
                 const [, h] = this.size = a.grid.size = a.logo.size = a.starField.size = [this.ctx.canvas.width, this.ctx.canvas.height] = size;
                 a.grid.fieldOfView = h / 2;
             }
         }, 250);
     };
 
-    async startAnimation(): Promise<void> {
+    async start(): Promise<void> {
 
         await this.ctorPromise;
 
@@ -168,6 +165,11 @@ class Bs80Animation {
     }
 }
 
+const bs80Animation = new Bs80Animation(
+    document.body,
+    () => [window.innerWidth, window.innerHeight]
+);
+
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-new Bs80Animation(document.body, window.innerWidth, window.innerHeight).startAnimation();
+bs80Animation.start();
 
