@@ -16,8 +16,8 @@
     "compile": "tsc -p ./tsconfig.json --noemit",
     "clean": "rimraf -g ./dist/**/* && rimraf -g ./src/**/*.{js,js.map}",
     "lint": "eslint src --ext .ts -f visualstudio",
-    "build": "npm run compile && node ./build/build.js",
-    "start": "node ./build/start.js",
+    "build": "npm run compile && node ./scripts/build.js",
+    "start": "node ./scripts/start.js",
     "test": "echo \"Error: no test exits\""
   },
   "keywords": [],
