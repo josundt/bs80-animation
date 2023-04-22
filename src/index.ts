@@ -17,4 +17,3 @@ const bs80Animation = new Bs80Animation(
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 bs80Animation.start();
-

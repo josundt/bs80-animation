@@ -20,11 +20,11 @@ const resolve = enhancedResolve.create({
  * @param {Set<[dependency: string, dependent: string, kind: "static" | "dynamic"]>?} result
  * @returns {Promise<Array<[dependency: string, dependent: string, kind: "static" | "dynamic"]>>}
  */
-export async function resolveRecursiveAsync(importExpression, fromContext, kind, result) {
+export async function resolveImportGraphAsync(importExpression, fromContext, kind, result) {
     const isRecursiveCall = !!kind;
     result ??= new Set();
 
-    const modulePath = await resolveOneAsync(importExpression, isRecursiveCall ? path.dirname(fromContext) : fromContext);
+    const modulePath = await resolveImportPathAsync(importExpression, isRecursiveCall ? path.dirname(fromContext) : fromContext);
     const moduleContent = await fsp.readFile(modulePath);
 
     if (isRecursiveCall) {
@@ -46,7 +46,7 @@ export async function resolveRecursiveAsync(importExpression, fromContext, kind,
     }
 
     await Promise.all(currentDeps.map(
-        ([dep, , kind]) => resolveRecursiveAsync(dep, modulePath, kind, result))
+        ([dep, , kind]) => resolveImportGraphAsync(dep, modulePath, kind, result))
     );
 
     return isRecursiveCall ? [] : Array.from(result);
@@ -57,7 +57,7 @@ export async function resolveRecursiveAsync(importExpression, fromContext, kind,
  * @param {string} fromContext
  * @returns {Promise<string | null>}
  */
-function resolveOneAsync(importExpression, fromContext) {
+function resolveImportPathAsync(importExpression, fromContext) {
     return new Promise((res, rej) => {
         resolve(fromContext, importExpression, (err, result) => {
             if (err) {

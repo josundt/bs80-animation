@@ -2,7 +2,7 @@ import esbuild from "esbuild";
 import { src, dst } from "./path-helper.js";
 import http from "node:http";
 import { glob } from "glob";
-import { resolveRecursiveAsync } from "./resolver.js";
+import { resolveImportGraphAsync } from "./resolver.js";
 
 /** @type {import("esbuild").BuildOptions} */
 const baseOptions = {
@@ -35,7 +35,7 @@ async function getOptionsAsync(production, bundle) {
 
     const tsFiles = [src("index.ts")];
     if (!bundle) {
-        const resolved = await resolveRecursiveAsync("./index.ts", src());
+        const resolved = await resolveImportGraphAsync("./index.ts", src());
 
         // Try to resolve all modules recursive (PS! Does not exclude type only exports)
         tsFiles.push(...resolved.map(([m]) => m));
@@ -73,7 +73,7 @@ export async function buildAsync(production = false, bundle = false) {
     console.info(` > ${bundle ? "Bundling" : "Building"} "${src()}" to "${dst()}" [env: ${production ? "production" : "development"}]...`);
     console.info("");
 
-    /*const result =*/ await esbuild.build(o);
+    const result = await esbuild.build(o);
 }
 
 /**
