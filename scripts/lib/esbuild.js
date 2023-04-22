@@ -52,6 +52,7 @@ async function getOptionsAsync(production, bundle) {
                 src("index.css")
             ],
             bundle: bundle,
+            format: bundle ? "iife" : "esm",
             minify: production,
             define: {
                 IS_DEVELOPMENT: String(!production)
