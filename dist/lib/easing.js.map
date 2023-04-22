@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/lib/easing.ts"],
+  "sourcesContent": ["export namespace Easing {\r\n    export const easeIn = (k: number, exp: number = 1.67): number => k ** exp;\r\n\r\n    export const easeOut = (k: number, exp: number = 1.67): number => 1 - (Math.max(1 - k, 0) ** exp);\r\n\r\n    export const easeInOut = (k: number): number => .5*(Math.sin((k - .5)*Math.PI) + 1);\r\n}\r\n"],
+  "mappings": "AAAO,IAAUA,OACAA,EAAA,OAAS,CAACC,EAAWC,EAAc,OAAiBD,GAAKC,EAEzDF,EAAA,QAAU,CAACC,EAAWC,EAAc,OAAiB,EAAK,KAAK,IAAI,EAAID,EAAG,CAAC,GAAKC,EAEhFF,EAAA,UAAaC,GAAsB,IAAI,KAAK,KAAKA,EAAI,IAAI,KAAK,EAAE,EAAI,KALpED,MAAA",
+  "names": ["Easing", "k", "exp"]
+}

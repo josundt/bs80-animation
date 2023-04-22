@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/assets/bg-gradient.ts"],
+  "sourcesContent": ["import { LinearGradient } from \"../lib/linear-gradient.js\";\r\n\r\nexport class BgGradient extends LinearGradient {\r\n    constructor() {\r\n        super(\r\n            [0.00, [15, 3, 40, 1]],\r\n            //[0.65, [26, 4, 48, 1]],\r\n            [1.00, [31, 29, 52, 1]]\r\n        );\r\n    }\r\n}\r\n"],
+  "mappings": "AAAA,OAAS,kBAAAA,MAAsB,4BAExB,MAAMC,UAAmBD,CAAe,CAC3C,aAAc,CACV,MACI,CAAC,EAAM,CAAC,GAAI,EAAG,GAAI,CAAC,CAAC,EAErB,CAAC,EAAM,CAAC,GAAI,GAAI,GAAI,CAAC,CAAC,CAC1B,CACJ,CACJ",
+  "names": ["LinearGradient", "BgGradient"]
+}

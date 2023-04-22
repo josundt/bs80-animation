@@ -1,0 +1,2 @@
+var n;(i=>{function d(r){const c=[],s=r.canvas.captureStream(200),e=new MediaRecorder(s,{mimeType:"video/webm; codecs=vp9",videoBitsPerSecond:335544320});e.ondataavailable=o=>c.push(o.data),e.onstop=()=>{const o=new Blob(c,{type:"video/webm; codecs=vp9"}),a=URL.createObjectURL(o),t=document.createElement("a");t.href=a,t.download="perspective-grid.webm",t.click(),setTimeout(()=>{URL.revokeObjectURL(a)},0)},e.start(10)}i.recordCanvasAsMovieFile=d})(n||(n={}));export{n as CanvasRecorder};
+//# sourceMappingURL=canvas-recorder.js.map

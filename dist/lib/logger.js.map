@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/lib/logger.ts"],
+  "sourcesContent": ["type LogFn = (message: string, ...args: any[]) => void;\r\n\r\nexport interface ILogger {\r\n    debug: LogFn;\r\n    info: LogFn;\r\n    warn: LogFn;\r\n    error: LogFn;\r\n}\r\n\r\nexport class Logger implements ILogger {\r\n    constructor(\r\n        c?: Console\r\n    ) {\r\n        this.console = c ?? console;\r\n    }\r\n    private readonly console: Console;\r\n    debug: LogFn = (...args) => this.console.debug(...args);\r\n    info: LogFn = (...args) => this.console.info(...args);\r\n    warn: LogFn = (...args) => this.console.warn(...args);\r\n    error: LogFn = (...args) => this.console.error(...args);\r\n}\r\n"],
+  "mappings": "AASO,MAAMA,CAA0B,CACnC,YACIC,EACF,CAIF,WAAe,IAAIC,IAAS,KAAK,QAAQ,MAAM,GAAGA,CAAI,EACtD,UAAc,IAAIA,IAAS,KAAK,QAAQ,KAAK,GAAGA,CAAI,EACpD,UAAc,IAAIA,IAAS,KAAK,QAAQ,KAAK,GAAGA,CAAI,EACpD,WAAe,IAAIA,IAAS,KAAK,QAAQ,MAAM,GAAGA,CAAI,EANlD,KAAK,QAAUD,GAAA,KAAAA,EAAK,OACxB,CAMJ",
+  "names": ["Logger", "c", "args"]
+}

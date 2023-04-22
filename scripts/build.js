@@ -3,5 +3,5 @@ import { buildAsync } from "./lib/esbuild.js";
 import { copyAssetsAsync } from "./lib/copy-assets.js";
 
 await cleanAsync();
-await buildAsync(true);
 await copyAssetsAsync();
+await buildAsync(true, false);
