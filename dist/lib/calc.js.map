@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../src/lib/calc.ts"],
-  "sourcesContent": ["\r\nexport namespace Calc {\r\n\r\n    export function avg(...numbers: number[]): number {\r\n        return numbers.reduce((aggr, curr) => aggr + (curr / numbers.length), 0);\r\n    }\r\n\r\n}\r\n"],
-  "mappings": "AACO,IAAUA,MAAV,CAEI,SAASC,KAAOC,EAA2B,CAC9C,OAAOA,EAAQ,OAAO,CAACC,EAAMC,IAASD,EAAQC,EAAOF,EAAQ,OAAS,CAAC,CAC3E,CAFOF,EAAS,IAAAC,IAFHD,MAAA",
-  "names": ["Calc", "avg", "numbers", "aggr", "curr"]
-}

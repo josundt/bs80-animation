@@ -4,4 +4,4 @@ import { copyAssetsAsync } from "./lib/copy-assets.js";
 
 await cleanAsync();
 await copyAssetsAsync();
-await buildAsync(true, false);
+await buildAsync(true, true);

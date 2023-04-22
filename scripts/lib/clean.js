@@ -5,7 +5,7 @@ import { dst } from "./path-helper.js";
 
 export async function cleanAsync() {
 
-    console.info(` > Cleaning "${dst("")}"...`);
+    console.info(` > Cleaning "${dst()}"...`);
 
     await rimraf(dst("**/*"), {
         glob: true

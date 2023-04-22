@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../src/assets/shadow-gradient.ts"],
-  "sourcesContent": ["import { LinearGradient } from \"../lib/linear-gradient.js\";\r\n\r\nexport class ShadowGradient extends LinearGradient {\r\n    constructor() {\r\n        super(\r\n            [0.00, [26, 4, 48, 0.00]],\r\n            [0.30, [26, 4, 48, 0.00]],\r\n            [0.50, [7, 1, 10, 0.7]],\r\n            [0.60, [4, 1, 5, 0.99]],\r\n            [0.65, [1, 1, 1, 1.00]],\r\n            [0.68, [4, 1, 7, 0.99]],\r\n            [0.78, [11, 10, 17, 0.7]],\r\n            [1.00, [41, 39, 62, 0.00]]\r\n        );\r\n    }\r\n}\r\n"],
-  "mappings": "AAAA,OAAS,kBAAAA,MAAsB,4BAExB,MAAMC,UAAuBD,CAAe,CAC/C,aAAc,CACV,MACI,CAAC,EAAM,CAAC,GAAI,EAAG,GAAI,CAAI,CAAC,EACxB,CAAC,GAAM,CAAC,GAAI,EAAG,GAAI,CAAI,CAAC,EACxB,CAAC,GAAM,CAAC,EAAG,EAAG,GAAI,EAAG,CAAC,EACtB,CAAC,GAAM,CAAC,EAAG,EAAG,EAAG,GAAI,CAAC,EACtB,CAAC,IAAM,CAAC,EAAG,EAAG,EAAG,CAAI,CAAC,EACtB,CAAC,IAAM,CAAC,EAAG,EAAG,EAAG,GAAI,CAAC,EACtB,CAAC,IAAM,CAAC,GAAI,GAAI,GAAI,EAAG,CAAC,EACxB,CAAC,EAAM,CAAC,GAAI,GAAI,GAAI,CAAI,CAAC,CAC7B,CACJ,CACJ",
-  "names": ["LinearGradient", "ShadowGradient"]
-}
