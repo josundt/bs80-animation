@@ -8,7 +8,6 @@ export async function cleanAsync() {
     console.info(` > Cleaning "${dst()}"...`);
 
     const globPattern = dst("**/*").replace(/\\/g, "/");
-    console.log(globPattern);
 
     await rimraf(globPattern, {
         glob: true

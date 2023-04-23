@@ -7,7 +7,6 @@ export function copyAssetsAsync() {
     console.info(` > Copying assets to "${dst("")}"...`);
 
     return Promise.all([
-        "index.html",
         "images/bare_saa_80_logo_nobg.svg",
         // "index.css",
     ].map(

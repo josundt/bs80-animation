@@ -1,4 +1,9 @@
 import path from "node:path";
 
-export const src = p => path.resolve(`./src/${p ?? ""}`);
-export const dst = p => path.resolve(`./dist/${p ?? ""}`);
+function createResolveFn(folder) {
+    return p => path.resolve(`${folder}/${p ?? ""}`);
+}
+
+export const root = createResolveFn("./");
+export const src = createResolveFn("./src/");
+export const dst = createResolveFn("./dist/");

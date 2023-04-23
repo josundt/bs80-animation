@@ -29,51 +29,62 @@ const serveOptions = {
 /**
  * @param {boolean|} production
  * @param {boolean|} bundle
- * @returns {Promise<import("esbuild").BuildOptions>}
+ * @returns {Promise<[options: import("esbuild").BuildOptions, dependencies: Array<[dependency: string, dependent: string, kind: "static" | "dynamic"]>]>}
  */
-async function getOptionsAsync(production, bundle) {
+async function getOptionsAndDependenciesAsync(production, bundle) {
 
-    const tsFiles = [src("index.ts")];
+    const tsDependencies = [[src("index.js"), "static"]];
+    const tsEntryPoints = [src("index.ts")];
     if (!bundle) {
-        const resolved = await resolveImportGraphAsync("./index.ts", src());
+        tsDependencies.push(...(await resolveImportGraphAsync("./index.ts", src("index.html"))).map(([dep,,kind]) => [dep, kind]));
 
         // Try to resolve all modules recursive (PS! Does not exclude type only exports)
-        tsFiles.push(...resolved.map(([m]) => m));
+        tsEntryPoints.push(...tsDependencies.map(([m]) => m));
 
         // Alternative: Include all files in src folder
         //tsFiles = await glob("**/*.ts", { cwd: src()})).map(f => src(f);
     }
 
-    return {
-        ...baseOptions,
-        ...{
-            entryPoints: [
-                ...tsFiles,
-                src("index.css")
-            ],
-            bundle: bundle,
-            format: bundle ? "iife" : "esm",
-            minify: production,
-            define: {
-                IS_DEVELOPMENT: String(!production)
+    return [
+        {
+            ...baseOptions,
+            ...{
+                entryPoints: [
+                    ...tsEntryPoints,
+                    src("index.css")
+                ],
+                bundle: bundle,
+                format: bundle ? "iife" : "esm",
+                minify: production,
+                define: {
+                    IS_DEVELOPMENT: String(!production)
+                }
             }
-        }
-    }
+        },
+        tsDependencies
+    ];
 }
 
 /**
  * @param {boolean?} production
  * @param {boolean?} bundle
- * @returns {Promise<void>}
+ * @returns {Promise<{ jsDeps: Array<[dependency: string, kind: "static" | "dynamic"]> }>}
  */
 export async function buildAsync(production = false, bundle = false) {
 
-    const o = await getOptionsAsync(production, bundle);
+    const [options, tsDeps] = await getOptionsAndDependenciesAsync(production, bundle);
+    const jsDeps = tsDeps.map(([modulePath, kind]) => [
+        modulePath.replace(/\.ts$/, ".js").replace(src(), dst()),
+        kind
+    ]);
 
     console.info(` > ${bundle ? "Bundling" : "Building"} "${src()}" to "${dst()}" [env: ${production ? "production" : "development"}]...`);
     console.info("");
 
-    const result = await esbuild.build(o);
+    await esbuild.build(options);
+    return {
+        jsDeps
+    };
 }
 
 /**
@@ -84,13 +95,13 @@ export async function buildAsync(production = false, bundle = false) {
  */
 export async function serveAsync(production = false, bundle = false, port = 8080) {
 
-    const o = await getOptionsAsync(production, bundle);
+    const [options] = await getOptionsAndDependenciesAsync(production, bundle);
 
     console.info(` > Serving from "${dst()}" [env: ${production ? "production" : "development"}; bundle: ${bundle}]...`);
     console.info("");
 
     // Start esbuild's server on a random local port
-    let ctx = await esbuild.context(o);
+    let ctx = await esbuild.context(options);
 
     await ctx.watch({});
 

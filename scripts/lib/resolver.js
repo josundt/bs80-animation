@@ -1,7 +1,8 @@
 import enhancedResolve from "enhanced-resolve";
 import fsp from "node:fs/promises";
-import { src } from "./path-helper.js";
+import { src, root } from "./path-helper.js";
 import path from "node:path";
+import { typescriptCompileModule } from "./typescript-helper.js";
 
 const resolve = enhancedResolve.create({
     // or resolve.create.sync
@@ -24,8 +25,9 @@ export async function resolveImportGraphAsync(importExpression, fromContext, kin
     const isRecursiveCall = !!kind;
     result ??= new Set();
 
-    const modulePath = await resolveImportPathAsync(importExpression, isRecursiveCall ? path.dirname(fromContext) : fromContext);
-    const moduleContent = await fsp.readFile(modulePath);
+    const modulePath = await resolveImportPathAsync(importExpression, path.dirname(fromContext));
+    const moduleContent = (await fsp.readFile(modulePath)).toString();
+    const transpiledModuleContent = typescriptCompileModule(modulePath, moduleContent, "tsconfig.json", root())
 
     if (isRecursiveCall) {
         result.add([modulePath, fromContext, kind])
@@ -36,15 +38,16 @@ export async function resolveImportGraphAsync(importExpression, fromContext, kin
         [/import\s*\(\s*["']([^'"]+)["']\s*\)/ug, "dynamic"]   // Dynamic imports regex
     ];
 
+
     let currentDeps = [];
     for (const [regex, kind] of regexKindCollection) {
         let matches;
-        while ((matches = regex.exec(moduleContent)) !== null) {
+        while ((matches = regex.exec(transpiledModuleContent)) !== null) {
             currentDeps.push([matches[1], modulePath, kind]);
         }
         regex.lastIndex = 0;
     }
-
+5
     await Promise.all(currentDeps.map(
         ([dep, , kind]) => resolveImportGraphAsync(dep, modulePath, kind, result))
     );
