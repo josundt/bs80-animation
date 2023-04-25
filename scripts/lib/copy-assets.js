@@ -8,7 +8,6 @@ export function copyAssetsAsync() {
 
     return Promise.all([
         "images/bare_saa_80_logo_nobg.svg",
-        // "index.css",
     ].map(
         async f => {
             const s = src(f);
